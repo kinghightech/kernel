@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { supabase } from './supabase';
 import { motion } from 'motion/react';
 import { ChevronRight, Search, Sparkles, Paperclip, Trash2, MoreHorizontal, Reply, Forward, Archive } from 'lucide-react';
 
@@ -14,13 +16,16 @@ const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
   </svg>
 );
 
-const AppleButton = ({ label = 'Launch your growth', full }: { label?: string, full?: boolean }) => (
-  <button className={`group inline-flex items-center justify-center gap-3 rounded-full bg-white text-black font-bold text-lg md:text-xl px-8 py-4 md:px-10 md:py-5 transition-all hover:bg-white/90 active:scale-[0.98] ${full ? 'w-full' : ''}`}>
-    <AppleLogo className="w-5 h-5 md:w-6 md:h-6" />
-    {label}
-    <ChevronRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-[2px]" />
-  </button>
-);
+const AppleButton = ({ label = 'Launch your growth', full }: { label?: string, full?: boolean }) => {
+  const navigate = useNavigate();
+  return (
+    <button onClick={() => navigate('/auth')} className={`group inline-flex items-center justify-center gap-3 rounded-full bg-white text-black font-bold text-lg md:text-xl px-8 py-4 md:px-10 md:py-5 transition-all hover:bg-white/90 active:scale-[0.98] ${full ? 'w-full' : ''}`}>
+      <AppleLogo className="w-5 h-5 md:w-6 md:h-6" />
+      {label}
+      <ChevronRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-[2px]" />
+    </button>
+  );
+};
 
 const SectionEyebrow = ({ label, tag }: { label: string; tag?: string }) => (
   <div className="flex items-center gap-3">
@@ -36,7 +41,7 @@ const SectionEyebrow = ({ label, tag }: { label: string; tag?: string }) => (
   </div>
 );
 
-export default function App() {
+function Landing() {
   const [yearly, setYearly] = useState(false);
 
   const gradientStyle: React.CSSProperties = {
@@ -508,5 +513,134 @@ export default function App() {
         </section>
       </div>
     </div>
+  );
+}
+
+function Auth() {
+  const navigate = useNavigate();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    
+    if (isSignUp) {
+      const { error: signUpError } = await supabase.auth.signUp({ email, password });
+      if (signUpError) {
+        setError(signUpError.message);
+      } else {
+        navigate('/success');
+      }
+    } else {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      if (signInError) {
+        setError(signInError.message);
+      } else {
+        navigate('/success');
+      }
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#0c0c0c] text-white px-6">
+      <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
+      <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'radial-gradient(400px circle at 50% -20%, #A4F4FD, transparent 80%)' }} />
+      
+      <button onClick={() => navigate('/')} className="absolute top-8 left-8 text-white/50 hover:text-white transition-colors text-sm flex items-center gap-2">
+        <ChevronRight className="w-4 h-4 rotate-180" /> Back
+      </button>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="liquid-glass w-full max-w-md rounded-3xl p-8 md:p-12 relative z-10"
+      >
+        <div className="flex justify-center mb-8">
+          <LogoMark className="w-10 h-10" />
+        </div>
+        <h2 className="text-3xl font-bold text-center mb-2 tracking-tight">
+          {isSignUp ? 'Create an account' : 'Welcome back'}
+        </h2>
+        <p className="text-white/60 text-center mb-8 text-sm">
+          {isSignUp ? 'Sign up to get started with Kernel.' : 'Sign in to your account to continue.'}
+        </p>
+
+        {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm p-3 rounded-xl mb-6">{error}</div>}
+
+        <div className="space-y-4">
+          <form className="space-y-4" onSubmit={handleEmailAuth}>
+            <div>
+              <label className="block text-xs font-medium text-white/70 mb-1.5">Email address</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white/30 transition-colors" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-white/70 mb-1.5">Password</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white/30 transition-colors" />
+            </div>
+            <button disabled={loading} type="submit" className="w-full bg-white text-black font-semibold rounded-xl py-3 text-sm hover:bg-white/90 transition-colors mt-2 disabled:opacity-50">
+              {loading ? 'Authenticating...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+            </button>
+          </form>
+
+          <div className="text-center mt-6">
+            <button 
+              onClick={() => { setIsSignUp(!isSignUp); setError(null); }} 
+              className="text-xs text-white/50 hover:text-white transition-colors"
+            >
+              {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function Success() {
+  const navigate = useNavigate();
+  return (
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-[#0c0c0c] text-white px-6">
+      <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
+      
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        className="liquid-glass w-full max-w-md rounded-3xl p-8 md:p-12 relative z-10 text-center"
+      >
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-[#A4F4FD]" />
+          </div>
+        </div>
+        <h2 className="text-3xl font-bold tracking-tight mb-4">Welcome to Kernel</h2>
+        <p className="text-white/60 mb-8 text-base leading-relaxed">
+          You have successfully completed sign up. We're getting your workspace ready.
+        </p>
+        
+        <button onClick={() => navigate('/')} className="w-full bg-white text-black font-semibold rounded-xl py-3 text-sm hover:bg-white/90 transition-colors">
+          Return Home
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/success" element={<Success />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
