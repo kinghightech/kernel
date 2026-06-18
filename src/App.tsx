@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { supabase } from './supabase';
+import AIChat from './pages/AIChat';
 import { motion } from 'motion/react';
 import { ChevronRight, Search, Sparkles, Paperclip, Trash2, MoreHorizontal, Reply, Forward, Archive } from 'lucide-react';
 
@@ -622,11 +623,11 @@ function Success() {
         </div>
         <h2 className="text-3xl font-bold tracking-tight mb-4">Welcome to Kernel</h2>
         <p className="text-white/60 mb-8 text-base leading-relaxed">
-          You have successfully completed sign up. We're getting your workspace ready.
+          You have successfully completed sign up. Your workspace is ready.
         </p>
-        
-        <button onClick={() => navigate('/')} className="w-full bg-white text-black font-semibold rounded-xl py-3 text-sm hover:bg-white/90 transition-colors">
-          Return Home
+
+        <button onClick={() => navigate('/ai')} className="w-full bg-white text-black font-semibold rounded-xl py-3 text-sm hover:bg-white/90 transition-colors">
+          Continue to Kernel AI
         </button>
       </motion.div>
     </div>
@@ -640,6 +641,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/success" element={<Success />} />
+        <Route path="/ai" element={<AIChat />} />
       </Routes>
     </BrowserRouter>
   );
