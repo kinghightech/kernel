@@ -71,10 +71,6 @@ function Landing() {
           src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_064122_c4750c0e-7476-4b44-94a2-a85a65c63bf2.mp4" />
       </div>
 
-      {/* Vertical guide lines */}
-      <div className="hidden md:block pointer-events-none fixed inset-y-0 left-1/2 -translate-x-[calc(50%+36rem)] w-px bg-white/10 z-[5]" />
-      <div className="hidden md:block pointer-events-none fixed inset-y-0 left-1/2 translate-x-[calc(-50%+36rem)] w-px bg-white/10 z-[5]" />
-
       {/* Root SVG filter */}
       <svg className="hidden">
         <filter id="c3-noise">
@@ -91,7 +87,7 @@ function Landing() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between"
+          className="w-full px-6 md:px-12 py-6 flex items-center justify-between"
         >
           <div className="flex items-center">
             <LogoMark />
@@ -109,9 +105,6 @@ function Landing() {
                 {link}
               </motion.a>
             ))}
-          </div>
-          <div className="hidden md:block">
-            <PrimaryButton />
           </div>
           <button className="md:hidden w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
             <div className="w-4 h-px bg-white relative before:absolute before:w-4 before:h-px before:bg-white before:-top-1.5 after:absolute after:w-4 after:h-px after:bg-white after:top-1.5" />
@@ -150,7 +143,7 @@ function Landing() {
         </section>
 
         {/* Sections 3 & 4 Wrapper */}
-        <section className="max-w-6xl mx-auto px-6 py-16 md:py-24">
+        <section className="w-full px-6 md:px-12 py-16 md:py-24">
           {/* Section 3 — macOS menu bar strip */}
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
@@ -318,7 +311,7 @@ function Landing() {
         </section>
 
         {/* Section 5 — FeatureTriage */}
-        <section className="max-w-6xl mx-auto px-6 py-20 md:py-28">
+        <section className="w-full px-6 md:px-12 py-20 md:py-28">
           <div className="grid md:grid-cols-2 gap-10 md:gap-16 items-start">
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -372,7 +365,7 @@ function Landing() {
         </section>
 
         {/* Section 6 — LogoCloud */}
-        <section className="max-w-6xl mx-auto px-6 py-16 md:py-20">
+        <section className="w-full px-6 md:px-12 py-16 md:py-20">
           <div className="text-center text-xs uppercase tracking-widest text-white/40">
             Trusted by the world's most thoughtful teams
           </div>
@@ -393,7 +386,7 @@ function Landing() {
         </section>
 
         {/* Section 7 — Testimonials */}
-        <section className="max-w-6xl mx-auto px-6 py-20 md:py-28 border-t border-white/10">
+        <section className="w-full px-6 md:px-12 py-20 md:py-28 border-t border-white/10">
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { quote: "Kernel gave our leadership team four hours of their week back. It reads like email from the future.", name: "Parker Wilf", role: "Group Product Manager", company: "MERCURY" },
@@ -494,7 +487,7 @@ function Landing() {
         </section>
 
         {/* Section 9 — FinalCTA */}
-        <section className="max-w-6xl mx-auto px-6 py-20 md:py-32">
+        <section className="w-full px-6 md:px-12 py-20 md:py-32">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
