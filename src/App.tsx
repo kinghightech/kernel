@@ -4,7 +4,7 @@ import { supabase } from './supabase';
 import AIChat from './pages/AIChat';
 import DashboardLayout from './pages/DashboardLayout';
 import Home from './pages/Home';
-import { motion } from 'motion/react';
+import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'motion/react';
 import { ChevronRight, Search, Sparkles, Paperclip, Trash2, MoreHorizontal, Reply, Forward, Archive } from 'lucide-react';
 
 const AppleLogo = ({ className = 'w-4 h-4' }: { className?: string }) => (
@@ -13,25 +13,82 @@ const AppleLogo = ({ className = 'w-4 h-4' }: { className?: string }) => (
   </svg>
 );
 
-const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 256 256" fill="white">
-    <path d="M 0 128 C 70.692 128 128 185.308 128 256 L 64 256 C 64 220.654 35.346 192 0 192 Z M 256 192 C 220.654 192 192 220.654 192 256 L 128 256 C 128 185.308 185.308 128 256 128 Z M 128 0 C 128 70.692 70.692 128 0 128 L 0 64 C 35.346 64 64 35.346 64 0 Z M 192 0 C 192 35.346 220.654 64 256 64 L 256 128 C 185.308 128 128 70.692 128 0 Z" />
-  </svg>
+const LogoMark = ({ className = 'w-28 h-28 object-contain' }: { className?: string }) => (
+  <img src="/logo.png" alt="Kernel Logo" className={className} />
 );
 
 const PrimaryButton = ({ label = 'Launch your growth', full }: { label?: string, full?: boolean }) => {
   const navigate = useNavigate();
+
+  // Normalized cursor position within the button (-0.5 .. 0.5)
+  const px = useMotionValue(0);
+  const py = useMotionValue(0);
+  // Raw cursor position in px (for the glow)
+  const gx = useMotionValue(0);
+  const gy = useMotionValue(0);
+
+  const spring = { stiffness: 250, damping: 18, mass: 0.6 };
+  // Tilt toward the cursor: pointing up tilts top toward you, etc.
+  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [16, -16]), spring);
+  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-16, 16]), spring);
+  // Subtle parallax shift so it feels physical
+  const translateX = useSpring(useTransform(px, [-0.5, 0.5], [-6, 6]), spring);
+  const translateY = useSpring(useTransform(py, [-0.5, 0.5], [-6, 6]), spring);
+  // Press scale driven through the same transform (no whileTap, so it never
+  // fights the tilt and drops a frame).
+  const scale = useSpring(1, { stiffness: 400, damping: 25 });
+
+  const glow = useMotionTemplate`radial-gradient(160px circle at ${gx}px ${gy}px, rgba(0,210,255,0.35), transparent 65%)`;
+
+  const handleMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const localX = e.clientX - rect.left;
+    const localY = e.clientY - rect.top;
+    px.set(localX / rect.width - 0.5);
+    py.set(localY / rect.height - 0.5);
+    gx.set(localX);
+    gy.set(localY);
+  };
+
+  const reset = () => {
+    px.set(0);
+    py.set(0);
+    scale.set(1);
+  };
+
   return (
-    <button 
-      onClick={() => navigate('/auth')} 
-      className={`group relative inline-flex items-center justify-center gap-3 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-white font-bold text-lg md:text-xl px-8 py-4 md:px-10 md:py-5 transition-all duration-300 hover:bg-[#00d2ff]/10 hover:border-[#00d2ff]/40 hover:shadow-[0_0_40px_rgba(0,210,255,0.3)] hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden ${full ? 'w-full' : ''}`}
-    >
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-      <span className="relative z-10 flex items-center gap-3">
-        {label}
-        <ChevronRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-[4px] group-hover:text-[#00d2ff]" />
-      </span>
-    </button>
+    <div className={full ? 'w-full' : ''} style={{ perspective: 800 }}>
+      <motion.button
+        onClick={() => navigate('/auth')}
+        onMouseMove={handleMove}
+        onMouseEnter={handleMove}
+        onMouseLeave={reset}
+        onPointerDown={() => scale.set(0.96)}
+        onPointerUp={() => scale.set(1)}
+        style={{
+          rotateX,
+          rotateY,
+          x: translateX,
+          y: translateY,
+          scale,
+          transformStyle: 'preserve-3d',
+          transformPerspective: 800,
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
+        }}
+        className={`group relative inline-flex items-center justify-center gap-3 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-white font-bold text-lg md:text-xl px-8 py-4 md:px-10 md:py-5 transition-colors duration-300 hover:bg-[#00d2ff]/10 hover:border-[#00d2ff]/40 hover:shadow-[0_0_50px_rgba(0,210,255,0.35)] overflow-hidden ${full ? 'w-full' : ''}`}
+      >
+        {/* Cursor-tracking glow */}
+        <motion.div className="absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: glow, transform: 'translateZ(1px)' }} />
+        {/* Sheen sweep */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+        {/* Lift the label off the surface for real depth */}
+        <span className="relative z-10 flex items-center gap-3" style={{ transform: 'translateZ(40px)' }}>
+          {label}
+          <ChevronRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-[4px] group-hover:text-[#00d2ff]" />
+        </span>
+      </motion.button>
+    </div>
   );
 };
 
@@ -563,7 +620,7 @@ function Auth() {
         className="liquid-glass w-full max-w-md rounded-3xl p-8 md:p-12 relative z-10"
       >
         <div className="flex justify-center mb-8">
-          <LogoMark className="w-10 h-10" />
+          <LogoMark className="w-40 h-40 object-contain" />
         </div>
         <h2 className="text-3xl font-bold text-center mb-2 tracking-tight">
           {isSignUp ? 'Create an account' : 'Welcome back'}
