@@ -1,19 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../supabase';
 import { motion } from 'motion/react';
-import { Sparkles, ArrowUp, ChevronRight } from 'lucide-react';
-
-const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 256 256" fill="white">
-    <path d="M 0 128 C 70.692 128 128 185.308 128 256 L 64 256 C 64 220.654 35.346 192 0 192 Z M 256 192 C 220.654 192 192 220.654 192 256 L 128 256 C 128 185.308 185.308 128 256 128 Z M 128 0 C 128 70.692 70.692 128 0 128 L 0 64 C 35.346 64 64 35.346 64 0 Z M 192 0 C 192 35.346 220.654 64 256 64 L 256 128 C 185.308 128 128 70.692 128 0 Z" />
-  </svg>
-);
+import { Sparkles, ArrowUp } from 'lucide-react';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
 export default function AIChat() {
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -102,22 +94,16 @@ export default function AIChat() {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#0c0c0c] text-white">
+    <div className="relative h-full flex flex-col bg-[#0c0c0c] text-white overflow-hidden">
       <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
       <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'radial-gradient(400px circle at 50% -20%, #A4F4FD, transparent 80%)' }} />
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <LogoMark className="w-7 h-7" />
-          <div className="flex items-center gap-2">
-            <span className="font-semibold tracking-tight">Kernel AI</span>
-            <span className="px-2 py-0.5 rounded-full border border-white/10 text-white/50 text-xs">deepseek-v4-flash</span>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold tracking-tight">Kernel AI</span>
+          <span className="px-2 py-0.5 rounded-full border border-white/10 text-white/50 text-xs">deepseek-v4-flash</span>
         </div>
-        <button onClick={() => navigate('/')} className="text-white/50 hover:text-white transition-colors text-sm flex items-center gap-1">
-          Home <ChevronRight className="w-4 h-4" />
-        </button>
       </header>
 
       {/* Messages */}

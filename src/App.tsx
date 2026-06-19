@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { supabase } from './supabase';
 import AIChat from './pages/AIChat';
+import DashboardLayout from './pages/DashboardLayout';
+import Home from './pages/Home';
 import { motion } from 'motion/react';
 import { ChevronRight, Search, Sparkles, Paperclip, Trash2, MoreHorizontal, Reply, Forward, Archive } from 'lucide-react';
 
@@ -535,14 +537,14 @@ function Auth() {
       if (signUpError) {
         setError(signUpError.message);
       } else {
-        navigate('/success');
+        navigate('/dashboard');
       }
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) {
         setError(signInError.message);
       } else {
-        navigate('/success');
+        navigate('/dashboard');
       }
     }
     setLoading(false);
@@ -626,8 +628,8 @@ function Success() {
           You have successfully completed sign up. Your workspace is ready.
         </p>
 
-        <button onClick={() => navigate('/ai')} className="w-full bg-white text-black font-semibold rounded-xl py-3 text-sm hover:bg-white/90 transition-colors">
-          Continue to Kernel AI
+        <button onClick={() => navigate('/dashboard')} className="w-full bg-white text-black font-semibold rounded-xl py-3 text-sm hover:bg-white/90 transition-colors">
+          Continue to Dashboard
         </button>
       </motion.div>
     </div>
@@ -641,7 +643,10 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/success" element={<Success />} />
-        <Route path="/ai" element={<AIChat />} />
+        <Route path="/dashboard" element={<DashboardLayout />}>
+          <Route index element={<Home />} />
+          <Route path="ai" element={<AIChat />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
