@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { supabase } from './supabase';
+import { startCheckout } from './billing';
+import PricingSection from './components/PricingSection';
 import AIChat from './pages/AIChat';
 import DashboardLayout from './pages/DashboardLayout';
 import Home from './pages/Home';
+import Settings from './pages/Settings';
+import Marketing from './pages/Marketing';
+import Onboarding from './pages/Onboarding';
+import Checkout from './pages/Checkout';
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'motion/react';
 import { ChevronRight, Search, Sparkles, Paperclip, Trash2, MoreHorizontal, Reply, Forward, Archive } from 'lucide-react';
 
@@ -59,7 +65,7 @@ const PrimaryButton = ({ label = 'Launch your growth', full }: { label?: string,
   return (
     <div className={full ? 'w-full' : ''} style={{ perspective: 800 }}>
       <motion.button
-        onClick={() => navigate('/auth')}
+        onClick={() => navigate('/onboarding')}
         onMouseMove={handleMove}
         onMouseEnter={handleMove}
         onMouseLeave={reset}
@@ -107,7 +113,7 @@ const SectionEyebrow = ({ label, tag }: { label: string; tag?: string }) => (
 );
 
 function Landing() {
-  const [yearly, setYearly] = useState(false);
+  const navigate = useNavigate();
 
   const gradientStyle: React.CSSProperties = {
     backgroundImage: 'linear-gradient(to right, #091020 0%, #0B2551 12.5%, #A4F4FD 32.5%, #00d2ff 50%, #0B2551 67.5%, #091020 87.5%, #091020 100%)',
@@ -163,6 +169,15 @@ function Landing() {
               </motion.a>
             ))}
           </div>
+          <motion.button
+            onClick={() => navigate('/auth')}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+            className="hidden md:inline-flex items-center rounded-full border border-white/15 bg-white/5 px-5 py-2 text-sm font-medium text-white/80 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            Log in
+          </motion.button>
           <button className="md:hidden w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
             <div className="w-4 h-px bg-white relative before:absolute before:w-4 before:h-px before:bg-white before:-top-1.5 after:absolute after:w-4 after:h-px after:bg-white after:top-1.5" />
           </button>
@@ -470,78 +485,10 @@ function Landing() {
         </section>
 
         {/* Section 8 — Pricing */}
-        <section className="c3-pricing-section">
-          <svg width="0" height="0" style={{ position: 'absolute' }}>
-            <filter id="c3-noise-pricing">
-              <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="2" stitchTiles="stitch" />
-              <feComponentTransfer><feFuncA type="linear" slope="0.075" /></feComponentTransfer>
-              <feComposite in2="SourceGraphic" operator="in" result="noise" />
-              <feBlend in="SourceGraphic" in2="noise" mode="overlay" />
-            </filter>
-          </svg>
-
-          <div className="c3-watermark-container">
-            <div className="c3-watermark-main" style={{ filter: 'url(#c3-noise-pricing)' }}>
-              <span className="c3-watermark-line-1">Your email.</span>
-              <span className="c3-watermark-line-2">Kernel</span>
-            </div>
-          </div>
-
-          <div className="c3-grid">
-            <div className="c3-card">
-              <div className="c3-tier-small">Free</div>
-              <div className="c3-tier-large">Free</div>
-              <div className="c3-desc">For creators taking their first steps with Forma.</div>
-              <ul className="c3-list">
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Up to 3 projects in the cloud</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Image export up to 1080p</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Basic editing tools</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Free templates and icons</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Access via web and mobile app</li>
-              </ul>
-              <button className="c3-btn">Choose Plan</button>
-            </div>
-
-            <div className="c3-card">
-              <div className="c3-tier-small">Standard</div>
-              <div className="c3-tier-large">{yearly ? '$99,99/y' : '$9,99/m'}</div>
-              <div className="c3-desc">For freelancers and small teams who need more freedom and flexibility.</div>
-              <ul className="c3-list">
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Up to 50 projects in the cloud</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Export up to 4K</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Advanced editing toolkit</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Team collaboration (up to 5 members)</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Access to premium template library</li>
-              </ul>
-              <button className="c3-btn">Choose Plan</button>
-            </div>
-
-            <div className="c3-card c3-card-pro">
-              <div className="c3-tier-small">Pro</div>
-              <div className="c3-tier-large">{yearly ? '$199,99/y' : '$19,99/m'}</div>
-              <div className="c3-desc">For studios, agencies, and professional creators working with brands.</div>
-              <ul className="c3-list">
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Unlimited projects</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Export up to 8K + animations</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>AI-powered content generation tools</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Unlimited team members</li>
-                <li><div className="c3-check"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10 3L4.5 8.5L2 6" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>Brand customization</li>
-              </ul>
-              <button className="c3-btn">Choose Plan</button>
-            </div>
-          </div>
-
-          <div className="c3-toggle-wrap">
-            <span className="text-sm font-medium text-white/80">Yearly</span>
-            <button 
-              className={`c3-toggle ${yearly ? 'active' : ''}`}
-              onClick={() => setYearly(!yearly)}
-              aria-label="Toggle yearly pricing"
-            >
-              <div className="c3-toggle-knob" />
-            </button>
-          </div>
-        </section>
+        <PricingSection onChoose={(plan, intv) => {
+          if (plan === 'free') navigate('/onboarding');
+          else startCheckout(plan, intv);
+        }} />
 
         {/* Section 9 — FinalCTA */}
         <section className="w-full px-6 md:px-12 py-20 md:py-32">
@@ -695,11 +642,15 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/success" element={<Success />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<Home />} />
           <Route path="ai" element={<AIChat />} />
+          <Route path="marketing" element={<Marketing />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

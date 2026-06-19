@@ -99,15 +99,15 @@ export default function AIChat() {
   };
 
   return (
-    <div className="relative h-full flex flex-col bg-[#0c0c0c] text-white overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
-      <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'radial-gradient(400px circle at 50% -20%, #A4F4FD, transparent 80%)' }} />
+    <div className="relative h-full flex flex-col bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none opacity-30 hidden dark:block" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
+      <div className="absolute inset-0 pointer-events-none opacity-20 hidden dark:block" style={{ background: 'radial-gradient(400px circle at 50% -20%, #A4F4FD, transparent 80%)' }} />
 
       {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/10 backdrop-blur-md">
+      <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-black/10 dark:border-white/10 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <span className="font-semibold tracking-tight">Kernel AI</span>
-          <span className="px-2 py-0.5 rounded-full border border-white/10 text-white/50 text-xs">deepseek-v4-flash</span>
+          <span className="px-2 py-0.5 rounded-full border border-black/10 text-neutral-500 dark:border-white/10 dark:text-white/50 text-xs">deepseek-v4-flash</span>
         </div>
       </header>
 
@@ -116,11 +116,11 @@ export default function AIChat() {
         <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
           {messages.length === 0 && !loading && (
             <div className="flex flex-col items-center justify-center text-center pt-24">
-              <div className="w-16 h-16 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-6">
-                <Sparkles className="w-8 h-8 text-[#A4F4FD]" />
+              <div className="w-16 h-16 rounded-full bg-black/[0.05] border border-black/10 dark:bg-white/10 dark:border-white/20 flex items-center justify-center mb-6">
+                <Sparkles className="w-8 h-8 text-blue-600 dark:text-[#A4F4FD]" />
               </div>
               <h1 className="text-3xl font-bold tracking-tight mb-2">How can I help you today?</h1>
-              <p className="text-white/60 max-w-sm">Ask Kernel AI anything — draft a reply, summarize a thread, or brainstorm ideas.</p>
+              <p className="text-neutral-500 dark:text-white/60 max-w-sm">Ask Kernel AI anything — draft a reply, summarize a thread, or brainstorm ideas.</p>
             </div>
           )}
 
@@ -135,8 +135,8 @@ export default function AIChat() {
               <div
                 className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === 'user'
-                    ? 'bg-white text-black'
-                    : 'liquid-glass text-white/90'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                    : 'bg-black/[0.04] border border-black/10 text-neutral-800 dark:bg-white/[0.06] dark:border-white/10 dark:text-white/90'
                 }`}
               >
                 {msg.content}
@@ -151,7 +151,7 @@ export default function AIChat() {
               transition={{ duration: 0.3 }}
               className="flex justify-start"
             >
-              <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap liquid-glass text-white/90">
+              <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap bg-black/[0.04] border border-black/10 text-neutral-800 dark:bg-white/[0.06] dark:border-white/10 dark:text-white/90">
                 {streamingMessage}
               </div>
             </motion.div>
@@ -159,10 +159,10 @@ export default function AIChat() {
 
           {loading && !streamingMessage && (
             <div className="flex justify-start">
-              <div className="liquid-glass rounded-2xl px-4 py-3 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="bg-black/[0.04] border border-black/10 dark:bg-white/[0.06] dark:border-white/10 rounded-2xl px-4 py-3 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-neutral-400 dark:bg-white/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 rounded-full bg-neutral-400 dark:bg-white/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 rounded-full bg-neutral-400 dark:bg-white/60 animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           )}
@@ -174,26 +174,26 @@ export default function AIChat() {
       </div>
 
       {/* Composer */}
-      <div className="relative z-10 border-t border-white/10 backdrop-blur-md">
+      <div className="relative z-10 border-t border-black/10 dark:border-white/10 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-6 py-4">
-          <div className="liquid-glass flex items-end gap-2 rounded-2xl p-2">
+          <div className="bg-black/[0.04] border border-black/10 dark:bg-white/[0.06] dark:border-white/10 flex items-end gap-2 rounded-2xl p-2">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
               placeholder="Message Kernel AI..."
-              className="flex-1 resize-none bg-transparent px-3 py-2 text-sm focus:outline-none placeholder:text-white/40 max-h-40"
+              className="flex-1 resize-none bg-transparent px-3 py-2 text-sm focus:outline-none placeholder:text-neutral-400 dark:placeholder:text-white/40 max-h-40"
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim() || loading}
-              className="w-9 h-9 shrink-0 rounded-full bg-white text-black flex items-center justify-center hover:bg-white/90 transition-colors disabled:opacity-30"
+              className="w-9 h-9 shrink-0 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-30"
             >
               <ArrowUp className="w-5 h-5" />
             </button>
           </div>
-          <p className="text-center text-xs text-white/30 mt-2">Kernel AI can make mistakes. Verify important information.</p>
+          <p className="text-center text-xs text-neutral-400 dark:text-white/30 mt-2">Kernel AI can make mistakes. Verify important information.</p>
         </div>
       </div>
     </div>
