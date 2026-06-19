@@ -28,10 +28,13 @@ export default function PayWall() {
       </button>
 
       <div className="relative z-10">
-        <PricingSection onChoose={(plan, interval) => {
-          if (plan === 'free') { window.location.href = '/'; return; }
-          startCheckout(plan, interval);
-        }} />
+        <PricingSection
+          watermark={{ line1: 'Choose the best', line2: 'plan for you' }}
+          onChoose={(plan, interval) => {
+            if (plan === 'free') { window.location.href = '/'; return; }
+            startCheckout(plan, interval);
+          }}
+        />
       </div>
     </div>
   );

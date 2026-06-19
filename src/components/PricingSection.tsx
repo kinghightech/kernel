@@ -13,9 +13,17 @@ const Check = () => (
 
 // The exact pricing section used on the landing page, reusable elsewhere.
 // `onChoose` is called with the plan and the selected billing interval.
-export default function PricingSection({ onChoose }: { onChoose: (plan: PlanChoice, interval: Interval) => void }) {
+// `watermark` overrides the big faded background text (two lines).
+export default function PricingSection({
+  onChoose,
+  watermark,
+}: {
+  onChoose: (plan: PlanChoice, interval: Interval) => void;
+  watermark?: { line1: string; line2: string };
+}) {
   const [yearly, setYearly] = useState(false);
   const interval: Interval = yearly ? 'year' : 'month';
+  const wm = watermark ?? { line1: 'Your email.', line2: 'Kernel' };
 
   return (
     <section className="c3-pricing-section">
@@ -30,8 +38,8 @@ export default function PricingSection({ onChoose }: { onChoose: (plan: PlanChoi
 
       <div className="c3-watermark-container">
         <div className="c3-watermark-main" style={{ filter: 'url(#c3-noise-pricing)' }}>
-          <span className="c3-watermark-line-1">Your email.</span>
-          <span className="c3-watermark-line-2">Kernel</span>
+          <span className="c3-watermark-line-1">{wm.line1}</span>
+          <span className="c3-watermark-line-2">{wm.line2}</span>
         </div>
       </div>
 
@@ -50,14 +58,32 @@ export default function PricingSection({ onChoose }: { onChoose: (plan: PlanChoi
           <button className="c3-btn" onClick={() => onChoose('free', interval)}>Choose Plan</button>
         </div>
 
-        <div className="c3-card">
+        <div
+          className="c3-card"
+          style={{
+            position: 'relative',
+            border: '1.5px solid rgba(0,210,255,0.65)',
+            boxShadow: '0 0 0 1px rgba(0,210,255,0.25), 0 0 45px rgba(0,210,255,0.18)',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute', top: 16, right: 16,
+              fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.04em',
+              color: '#00d2ff', background: 'rgba(0,210,255,0.12)',
+              border: '1px solid rgba(0,210,255,0.4)', borderRadius: 999,
+              padding: '4px 10px', textTransform: 'uppercase',
+            }}
+          >
+            Recommended
+          </div>
           <div className="c3-tier-small">Pro</div>
-          <div className="c3-tier-large">
+          <div className="c3-tier-large" style={{ whiteSpace: 'nowrap' }}>
             {yearly ? '$99.99/y' : (
-              <>
-                <span style={{ textDecoration: 'line-through', opacity: 0.4, fontWeight: 400, marginRight: 10 }}>$15.99</span>
-                $9.99/m
-              </>
+              <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+                <span style={{ textDecoration: 'line-through', opacity: 0.4, fontWeight: 400, fontSize: '0.9rem' }}>$15.99</span>
+                <span>$9.99/m</span>
+              </span>
             )}
           </div>
           <div

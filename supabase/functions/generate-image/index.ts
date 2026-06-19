@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
 
     const apiKey = Deno.env.get('CAMPAIGN_AI_KEY') ?? Deno.env.get('OPENROUTER_API_KEY')
     if (!apiKey) return json({ error: 'No AI API key configured.' }, 200)
-    const model = Deno.env.get('CAMPAIGN_IMAGE_MODEL') ?? 'black-forest-labs/flux.2-klein-4b'
+    const model = Deno.env.get('CAMPAIGN_IMAGE_MODEL') ?? 'sourceful/riverflow-v2.5-fast'
 
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
