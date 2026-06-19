@@ -7,6 +7,7 @@ type Message = { role: 'user' | 'assistant'; content: string };
 
 export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [streamingMessage, setStreamingMessage] = useState('');
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +15,7 @@ export default function AIChat() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages, loading]);
+  }, [messages, loading, streamingMessage]);
 
   const sendMessage = async () => {
     const trimmed = input.trim();
@@ -47,9 +48,9 @@ export default function AIChat() {
         throw new Error(msg);
       }
 
-      // Show an empty assistant bubble that fills in as tokens stream in.
+      // Initialize streaming message state
       setLoading(false);
-      setMessages([...nextMessages, { role: 'assistant', content: '' }]);
+      setStreamingMessage('');
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -74,11 +75,15 @@ export default function AIChat() {
             const delta = parsed?.choices?.[0]?.delta?.content;
             if (delta) {
               assistantText += delta;
-              setMessages([...nextMessages, { role: 'assistant', content: assistantText }]);
+              setStreamingMessage(assistantText);
             }
           } catch { /* partial JSON across chunks — ignore, will retry next chunk */ }
         }
       }
+      
+      // When done streaming, commit to the messages array
+      setMessages([...nextMessages, { role: 'assistant', content: assistantText }]);
+      setStreamingMessage('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -139,7 +144,20 @@ export default function AIChat() {
             </motion.div>
           ))}
 
-          {loading && (
+          {streamingMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="flex justify-start"
+            >
+              <div className="max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap liquid-glass text-white/90">
+                {streamingMessage}
+              </div>
+            </motion.div>
+          )}
+
+          {loading && !streamingMessage && (
             <div className="flex justify-start">
               <div className="liquid-glass rounded-2xl px-4 py-3 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-white/60 animate-bounce" style={{ animationDelay: '0ms' }} />

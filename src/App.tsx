@@ -19,13 +19,18 @@ const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
   </svg>
 );
 
-const AppleButton = ({ label = 'Launch your growth', full }: { label?: string, full?: boolean }) => {
+const PrimaryButton = ({ label = 'Launch your growth', full }: { label?: string, full?: boolean }) => {
   const navigate = useNavigate();
   return (
-    <button onClick={() => navigate('/auth')} className={`group inline-flex items-center justify-center gap-3 rounded-full bg-white text-black font-bold text-lg md:text-xl px-8 py-4 md:px-10 md:py-5 transition-all hover:bg-white/90 active:scale-[0.98] ${full ? 'w-full' : ''}`}>
-      <AppleLogo className="w-5 h-5 md:w-6 md:h-6" />
-      {label}
-      <ChevronRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-[2px]" />
+    <button 
+      onClick={() => navigate('/auth')} 
+      className={`group relative inline-flex items-center justify-center gap-3 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 text-white font-bold text-lg md:text-xl px-8 py-4 md:px-10 md:py-5 transition-all duration-300 hover:bg-[#00d2ff]/10 hover:border-[#00d2ff]/40 hover:shadow-[0_0_40px_rgba(0,210,255,0.3)] hover:-translate-y-0.5 active:scale-[0.98] overflow-hidden ${full ? 'w-full' : ''}`}
+    >
+      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
+      <span className="relative z-10 flex items-center gap-3">
+        {label}
+        <ChevronRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-[4px] group-hover:text-[#00d2ff]" />
+      </span>
     </button>
   );
 };
@@ -106,7 +111,7 @@ function Landing() {
             ))}
           </div>
           <div className="hidden md:block">
-            <AppleButton />
+            <PrimaryButton />
           </div>
           <button className="md:hidden w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
             <div className="w-4 h-px bg-white relative before:absolute before:w-4 before:h-px before:bg-white before:-top-1.5 after:absolute after:w-4 after:h-px after:bg-white after:top-1.5" />
@@ -140,8 +145,7 @@ function Landing() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.7 }}
             className="mt-8 flex flex-col items-center gap-4"
           >
-            <AppleButton />
-            <span className="text-xs text-white/40">Download for Intel / Apple Silicon</span>
+            <PrimaryButton />
           </motion.div>
         </section>
 
@@ -506,7 +510,7 @@ function Landing() {
               Join thousands of builders, founders, and operators who treat email like a tool — not an obligation.
             </p>
             <div className="relative z-10 mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <AppleButton />
+              <PrimaryButton />
               <button className="group rounded-full border border-white/15 text-white text-sm font-medium px-5 py-3 hover:bg-white/5 transition-colors flex items-center gap-2">
                 Talk to sales
                 <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-[1px]" />
@@ -521,7 +525,7 @@ function Landing() {
 
 function Auth() {
   const navigate = useNavigate();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
