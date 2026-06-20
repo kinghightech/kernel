@@ -1,13 +1,36 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Globe, ImagePlus, Loader2, Trash2, Plus, Download, Wand2, Pencil, Save,
-  Code2, Monitor, Smartphone, Send, ArrowLeft, Check, ExternalLink, Info,
+  Code2, Monitor, Smartphone, Send, ArrowLeft, Check, ExternalLink, Info, X, LayoutTemplate
 } from 'lucide-react';
 import {
   loadBusinessProfile, uploadLogo, uploadProductImage, loadProducts, addProduct, deleteProduct,
   generateWebsite, editWebsite, saveWebsite, loadWebsite, downloadSite,
   type Product, type WebsiteInputs, type SavedWebsite, type SiteFiles,
 } from '../website';
+
+const TEMPLATES = [
+  { name: 'Cafe', bg: 'pink' },
+  { name: 'Restaurant', bg: 'black' },
+  { name: 'Portfolio', bg: 'white' },
+  { name: 'Agency', bg: '#f3f4f6' },
+  { name: 'E-commerce', bg: '#e0f2fe' },
+  { name: 'Blog', bg: '#fef3c7' },
+  { name: 'Startup', bg: '#dcfce7' },
+  { name: 'Photography', bg: '#111827' },
+  { name: 'Consulting', bg: '#f8fafc' },
+  { name: 'Fitness', bg: '#ffe4e6' },
+  { name: 'Salon', bg: '#fce7f3' },
+  { name: 'Real Estate', bg: '#f1f5f9' },
+  { name: 'Education', bg: '#eff6ff' },
+  { name: 'Non-profit', bg: '#f0fdf4' },
+  { name: 'Event', bg: '#faf5ff' },
+  { name: 'Music', bg: '#18181b' },
+  { name: 'Medical', bg: '#f0f9ff' },
+  { name: 'Legal', bg: '#f8fafc' },
+  { name: 'Construction', bg: '#fff7ed' },
+  { name: 'SaaS', bg: '#f8fafc' },
+];
 
 const TONES = ['Clean & modern', 'Warm & cozy', 'Bold & vibrant', 'Elegant & minimal', 'Playful', 'Luxury'];
 const QUICK_FIXES = [
@@ -39,6 +62,27 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 
 type Phase = 'setup' | 'studio';
 type ChatMsg = { role: 'user' | 'assistant'; content: string };
+
+// Injected into each previewed page so clicking an internal link (e.g.
+// "menu.html") switches the previewed page in-app instead of trying to navigate
+// the iframe to a file that isn't served anywhere.
+const NAV_SCRIPT = `<script>
+(function(){
+  document.addEventListener('click', function(e){
+    var a = e.target.closest ? e.target.closest('a') : null;
+    if(!a) return;
+    var h = a.getAttribute('href') || '';
+    if(/^(https?:|mailto:|tel:|#)/i.test(h)) return;
+    var p = h.replace(/[?#].*$/,'').replace(/^\\.?\\//,'');
+    if(/\\.html$/i.test(p)){ e.preventDefault(); parent.postMessage({ kernelNav: p }, '*'); }
+  }, true);
+})();
+</script>`;
+
+function withNav(html: string): string {
+  if (!html) return html;
+  return html.includes('</body>') ? html.replace('</body>', NAV_SCRIPT + '</body>') : html + NAV_SCRIPT;
+}
 
 export default function Website() {
   const [phase, setPhase] = useState<Phase>('setup');
@@ -73,9 +117,8 @@ export default function Website() {
 
   // studio state
   const [files, setFiles] = useState<SiteFiles | null>(null);
-  const [liveUrl, setLiveUrl] = useState<string | null>(null);
-  const [bust, setBust] = useState(0); // cache-buster for the preview iframe
-  const [activeFile, setActiveFile] = useState('index.html');
+  const [previewPage, setPreviewPage] = useState('index.html'); // page shown in the preview iframe
+  const [activeFile, setActiveFile] = useState('index.html');    // file shown in the code view
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [busy, setBusy] = useState(false);
@@ -84,6 +127,7 @@ export default function Website() {
   const [rightView, setRightView] = useState<'preview' | 'code'>('preview');
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
   const [error, setError] = useState<string | null>(null);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -104,10 +148,8 @@ export default function Website() {
         setTone(i.tone ?? 'Clean & modern'); setAccentColor(i.accentColor ?? '#2563eb');
         setBackgroundColor(i.backgroundColor ?? '#ffffff');
         setExtra(i.extra ?? '');
-        if (site.files) setFiles(site.files);
-        else if (site.html) setFiles({ 'index.html': site.html });
-        setLiveUrl(site.site_url ?? null);
-        setBust(Date.now());
+        setFiles(site.files ?? (site.html ? { 'index.html': site.html } : null));
+        setPreviewPage('index.html');
         setMessages([{ role: 'assistant', content: 'Here is your saved website. Tell me what you’d like to change, or edit your details and regenerate.' }]);
         setPhase('studio');
       }
@@ -117,6 +159,16 @@ export default function Website() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, busy]);
+
+  // Listen for in-preview link clicks and switch the previewed page.
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      const p = (e.data && (e.data as { kernelNav?: string }).kernelNav) || '';
+      if (p && files && files[p]) setPreviewPage(p);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [files]);
 
   const currentInputs = (): WebsiteInputs => ({
     businessName, businessType, about, address, phone, email, hours, discounts, tone, accentColor, backgroundColor, logoUrl, extra,
@@ -160,14 +212,13 @@ export default function Website() {
     setPhase('studio');
     setRightView('preview');
     setBusy(true);
-    setMessages([{ role: 'assistant', content: `Building your first draft for ${businessName}… this takes a bit — it’s writing a real multi-page site and hosting it live.` }]);
+    setMessages([{ role: 'assistant', content: `Building your first draft for ${businessName}… it’s writing a real multi-page site.` }]);
     try {
-      const { files: newFiles, url } = await generateWebsite(currentInputs());
+      const { files: newFiles } = await generateWebsite(currentInputs());
       setFiles(newFiles);
-      setLiveUrl(url);
+      setPreviewPage('index.html');
       setActiveFile('index.html');
-      setBust(Date.now());
-      setMessages([{ role: 'assistant', content: `Here’s your live website for ${businessName}. Click around the pages in the preview — they’re really hosted. Tell me anything to change (colors, layout, copy, sections) and I’ll rebuild it.` }]);
+      setMessages([{ role: 'assistant', content: `Here’s your website for ${businessName}. Click the pages in the preview to move around. Tell me anything to change (colors, layout, copy, sections) and I’ll rebuild it.` }]);
     } catch (e) {
       setMessages([{ role: 'assistant', content: e instanceof Error ? e.message : 'Something went wrong building the site.' }]);
     } finally {
@@ -182,11 +233,10 @@ export default function Website() {
     setMessages(prev => [...prev, { role: 'user', content: instruction }]);
     setBusy(true);
     try {
-      const { files: updated, url } = await editWebsite({ currentFiles: files, instruction, inputs: currentInputs() });
+      const { files: updated } = await editWebsite({ currentFiles: files, instruction, inputs: currentInputs() });
       setFiles(updated);
-      setLiveUrl(url);
-      setBust(Date.now());
-      setMessages(prev => [...prev, { role: 'assistant', content: '✓ Done — updated and re-published. Anything else?' }]);
+      if (!updated[previewPage]) setPreviewPage('index.html');
+      setMessages(prev => [...prev, { role: 'assistant', content: '✓ Done — updated the site. Anything else?' }]);
     } catch (e) {
       setMessages(prev => [...prev, { role: 'assistant', content: e instanceof Error ? e.message : 'Could not apply that change. Please try again.' }]);
     } finally {
@@ -195,10 +245,10 @@ export default function Website() {
   };
 
   const handleSave = async () => {
-    if (!files || !liveUrl) return;
+    if (!files) return;
     setSaving(true);
     try {
-      const row = await saveWebsite({ name: businessName || 'My website', inputs: currentInputs(), files, url: liveUrl });
+      const row = await saveWebsite({ name: businessName || 'My website', inputs: currentInputs(), files });
       setSavedSite(row);
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2500);
@@ -210,7 +260,15 @@ export default function Website() {
   };
 
   const fakeDomain = `${(businessName || 'your-business').toLowerCase().replace(/[^a-z0-9]+/g, '')}.com`;
-  const previewSrc = liveUrl ? `${liveUrl}?t=${bust}` : '';
+
+  // Open the current page full-window in a new tab (rendered via a blob URL).
+  const openInTab = () => {
+    if (!files) return;
+    const blob = new Blob([files[previewPage] ?? files['index.html'] ?? ''], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  };
 
   // ============================ STUDIO ============================
   if (phase === 'studio') {
@@ -238,12 +296,12 @@ export default function Website() {
               <button onClick={() => setRightView('code')} className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 ${rightView === 'code' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400'}`}><Code2 className="w-3.5 h-3.5" /> Code</button>
             </div>
             <button
-              onClick={() => liveUrl && window.open(previewSrc, '_blank')}
-              disabled={!liveUrl}
-              title="Open the live site in a new tab"
+              onClick={openInTab}
+              disabled={!files}
+              title="Open this page full-window in a new tab"
               className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-black/10 dark:border-white/15 hover:bg-black/[0.04] dark:hover:bg-white/5 transition-colors disabled:opacity-40"
             >
-              <ExternalLink className="w-3.5 h-3.5" /> Open live
+              <ExternalLink className="w-3.5 h-3.5" /> Open
             </button>
             <button
               onClick={() => files && downloadSite(files)}
@@ -304,7 +362,7 @@ export default function Website() {
             {/* hosting note */}
             <div className="mx-3 mb-2 flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2 text-[11px] leading-snug text-neutral-600 dark:text-white/60">
               <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-500" />
-              <span>This live preview is hosted for previewing only. To put it on your real website, <b>download the files</b> — we’ll help you get it live on your domain.</span>
+              <span>This is a live preview. To put it on your real website, <b>download the files</b> — we’ll help you get it live on your domain.</span>
             </div>
 
             {/* input */}
@@ -359,20 +417,21 @@ export default function Website() {
                     <span className="w-3 h-3 rounded-full bg-[#febc2e]" />
                     <span className="w-3 h-3 rounded-full bg-[#28c840]" />
                     <div className="ml-3 flex-1 h-5 rounded-md bg-white/70 dark:bg-black/30 text-[11px] text-neutral-500 dark:text-white/40 flex items-center px-2 truncate">
-                      {fakeDomain}
+                      {fakeDomain}{previewPage === 'index.html' ? '' : `/${previewPage}`}
                     </div>
                   </div>
-                  {previewSrc ? (
+                  {files ? (
                     <iframe
-                      key={bust}
+                      key={previewPage}
                       title="Website preview"
-                      src={previewSrc}
+                      srcDoc={withNav(files[previewPage] ?? files['index.html'] ?? '')}
+                      sandbox="allow-scripts allow-same-origin allow-modals allow-popups"
                       className="flex-1 w-full bg-white"
                     />
                   ) : (
                     <div className="flex-1 flex flex-col items-center justify-center gap-3 text-neutral-400">
                       <Loader2 className="w-7 h-7 animate-spin" />
-                      <p className="text-sm">Building &amp; hosting your website…</p>
+                      <p className="text-sm">Building your website…</p>
                     </div>
                   )}
                 </div>
@@ -404,8 +463,7 @@ export default function Website() {
           <button
             onClick={() => {
               setFiles(savedSite.files ?? (savedSite.html ? { 'index.html': savedSite.html } : null));
-              setLiveUrl(savedSite.site_url ?? null);
-              setBust(Date.now());
+              setPreviewPage('index.html');
               setMessages([{ role: 'assistant', content: 'Reopened your saved website. What would you like to change?' }]);
               setPhase('studio');
             }}
@@ -538,13 +596,55 @@ export default function Website() {
 
         {error && <div className="mt-5 text-sm text-red-500 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">{error}</div>}
 
-        <button
-          onClick={handleGenerate}
-          className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-lg shadow-blue-900/30"
-        >
-          <Wand2 className="w-5 h-5" /> {savedSite ? 'Rebuild website' : 'Generate website'}
-        </button>
+        <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
+          <button
+            onClick={handleGenerate}
+            className="flex-1 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-lg shadow-blue-900/30"
+          >
+            <Wand2 className="w-5 h-5" /> {savedSite ? 'Rebuild website' : 'Generate website'}
+          </button>
+          <button
+            onClick={() => setShowTemplatesModal(true)}
+            className="flex-1 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white dark:bg-white/10 hover:bg-black/5 dark:hover:bg-white/20 text-black dark:text-white font-semibold transition-colors shadow-lg shadow-black/5 border border-black/10 dark:border-white/10"
+          >
+            <LayoutTemplate className="w-5 h-5" /> Browse Templates
+          </button>
+        </div>
       </div>
+
+      {showTemplatesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-neutral-900 rounded-3xl w-full max-w-5xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-black/10 dark:border-white/10">
+              <h2 className="text-xl font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <LayoutTemplate className="w-6 h-6" />
+                Browse Templates
+              </h2>
+              <button 
+                onClick={() => setShowTemplatesModal(false)}
+                className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1 bg-black/[0.02] dark:bg-white/[0.02]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {TEMPLATES.map((t, i) => (
+                  <div key={i} className="group relative rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-white dark:bg-neutral-800 hover:shadow-xl transition-all hover:-translate-y-1">
+                    <div className="aspect-[4/3] w-full relative overflow-hidden bg-neutral-100 dark:bg-neutral-900">
+                      <iframe src={`/templates/template-${i + 1}.html`} className="absolute top-0 left-0 w-[200%] h-[200%] origin-top-left scale-50 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity bg-white" />
+                    </div>
+                    <div className="p-4 border-t border-black/10 dark:border-white/10 flex items-center justify-between">
+                      <span className="font-semibold text-sm text-neutral-800 dark:text-neutral-200">{t.name}</span>
+                      <button onClick={() => setShowTemplatesModal(false)} className="text-xs font-semibold bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors">Select</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

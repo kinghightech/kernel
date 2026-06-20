@@ -38,7 +38,6 @@ export interface WebsiteInputs {
 export type SiteFiles = Record<string, string>;
 export interface GeneratedSite {
   files: SiteFiles;
-  url: string;
 }
 
 export interface SavedWebsite {
@@ -169,30 +168,30 @@ export async function deleteProduct(id: string) {
 // files and returns them along with the live URL.
 export async function generateWebsite(inputs: WebsiteInputs): Promise<GeneratedSite> {
   const { data, error } = await supabase.functions.invoke('generate-website', { body: { inputs } });
-  if (error || !data?.files || !data?.url) {
+  if (error || !data?.files) {
     console.error('generate-website failed:', error, data);
     const backendErr = error?.message || data?.error || 'Unknown error';
     throw new Error(`Could not generate the website: ${backendErr}`);
   }
-  return { files: data.files as SiteFiles, url: data.url as string };
+  return { files: data.files as SiteFiles };
 }
 
 // Ask the AI to revise the current (multi-file) website per a plain-English
-// instruction. Returns the updated, re-hosted site.
+// instruction. Returns the updated file set.
 export async function editWebsite(args: { currentFiles: SiteFiles; instruction: string; inputs: WebsiteInputs }): Promise<GeneratedSite> {
   const { data, error } = await supabase.functions.invoke('generate-website', {
     body: { inputs: args.inputs, currentFiles: args.currentFiles, instruction: args.instruction },
   });
-  if (error || !data?.files || !data?.url) {
+  if (error || !data?.files) {
     console.error('edit-website failed:', error, data);
     const backendErr = error?.message || data?.error || 'Unknown error';
     throw new Error(`Could not update the website: ${backendErr}`);
   }
-  return { files: data.files as SiteFiles, url: data.url as string };
+  return { files: data.files as SiteFiles };
 }
 
 // Save (or replace) the user's one active website.
-export async function saveWebsite(args: { name: string; inputs: WebsiteInputs; files: SiteFiles; url: string }): Promise<SavedWebsite> {
+export async function saveWebsite(args: { name: string; inputs: WebsiteInputs; files: SiteFiles }): Promise<SavedWebsite> {
   const user = await requireUser();
   const { data, error } = await supabase
     .from('websites')
@@ -203,7 +202,6 @@ export async function saveWebsite(args: { name: string; inputs: WebsiteInputs; f
         inputs: args.inputs,
         html: args.files['index.html'] ?? '',
         files: args.files,
-        site_url: args.url,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id' },

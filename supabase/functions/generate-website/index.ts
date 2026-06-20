@@ -1,25 +1,20 @@
 // Edge Function: generate-website
-// Builds (or edits) a real, multi-FILE marketing website and HOSTS it on Supabase
-// Storage so it is genuinely live (multi-page nav, CSS, images all work for real).
+// Builds (or edits) a real, multi-FILE marketing website and returns the files.
 //
 // Modes:
 //   * build: given `inputs`, generate a fresh multi-file site.
 //   * edit:  given `currentFiles` + `instruction`, return the updated file set.
-// In both cases the files are uploaded to business-assets/<userId>/site/ and the
-// function returns { files, url } where url is the live index.html.
+// Returns { files } (filename -> contents). The app renders these directly in an
+// iframe and lets the user download them — Supabase Storage refuses to serve user
+// HTML as renderable text/html, so we deliberately do NOT host here.
 //
-// Uses WEBSITE_AI_KEY / CAMPAIGN_AI_KEY / OPENROUTER_API_KEY for OpenRouter, and the
-// auto-injected SUPABASE_SERVICE_ROLE_KEY to host the files.
-
-import { createClient } from 'jsr:@supabase/supabase-js@2'
+// Uses WEBSITE_AI_KEY / CAMPAIGN_AI_KEY / OPENROUTER_API_KEY for OpenRouter.
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
-
-const BUCKET = 'business-assets'
 
 interface Product {
   name: string
@@ -45,49 +40,62 @@ interface WebsiteInputs {
   products?: Product[]
 }
 
-const DESIGN_RULES = `You are an expert UX designer and senior front-end engineer. You generate complete, production-ready, genuinely beautiful marketing websites — premium, custom-coded sites that look like a top studio shipped them. NEVER cheap, generic, or "vibe-coded".
+const DESIGN_RULES = `You are the design lead at a small studio known for giving every client a visual identity that could not be mistaken for anyone else's. This client has rejected templated, generic websites. Design a distinctive, premium, multi-PAGE marketing site that is SPECIFIC to this exact business — deliberate, opinionated choices in palette, type, and layout. It must look custom and intentional, never AI-generated.
 
 OUTPUT FORMAT — MULTIPLE FILES
-- Build a real multi-PAGE website made of these four pages: index.html (Home), menu.html (Menu/Catalog), about.html (About), contact.html (Contact).
-- Output EACH file using this EXACT delimiter on its own line immediately before the file's contents:
+- Build four pages: index.html (Home), menu.html (Menu/Catalog), about.html (About), contact.html (Contact).
+- Output EACH file using this EXACT delimiter on its own line immediately before its contents:
 <<<FILE index.html>>>
-...the full HTML document...
+...full HTML document...
 <<<FILE menu.html>>>
-...the full HTML document...
+...full HTML document...
 <<<FILE about.html>>>
 ...
 <<<FILE contact.html>>>
 ...
-- Each file is a COMPLETE, standalone HTML5 document (starts with <!DOCTYPE html>, ends with </html>).
+- Each file is a COMPLETE, standalone HTML5 document (<!DOCTYPE html> … </html>) with <meta charset="UTF-8"> in the head.
 - Do NOT use markdown or code fences. Output ONLY the delimiters and raw HTML. No commentary.
 
-EACH PAGE
-- Uses Tailwind CSS via <script src="https://cdn.tailwindcss.com"></script> in the <head>, then a <script> that sets tailwind.config with the chosen Google Font as the default font and the accent + background colors as theme colors.
-- Loads premium Google Fonts matching the requested vibe (e.g. 'Inter'/'Outfit' modern, 'Playfair Display'+'Inter' elegant, 'Sora'/'Space Grotesk' bold).
-- Shares the SAME sticky header and footer across all four pages so it feels like one cohesive site.
-- The header nav links to the OTHER pages with RELATIVE links: <a href="index.html">Home</a>, <a href="menu.html">Menu</a>, <a href="about.html">About</a>, <a href="contact.html">Contact</a>. Highlight the current page's link with the accent. NEVER use absolute URLs, external domains, http(s) links, or target attributes for internal nav — ONLY the bare relative filenames above.
-- Fully responsive (Tailwind md:/lg:). Logo: a normal <img>. Missing product images: a tasteful muted placeholder <div>, never a broken image.
+TECH FOR EACH PAGE
+- Tailwind CSS via <script src="https://cdn.tailwindcss.com"></script> in <head>, then a <script> setting tailwind.config with your chosen Google Font as the default font and a small named color palette (derived from the business + the user's accent/background).
+- Load Google Fonts you deliberately chose for this brand (see Typography below).
+- Same sticky header + footer across all four pages for cohesion. Header nav links to the other pages with BARE RELATIVE links only: <a href="index.html">…</a>, "menu.html", "about.html", "contact.html". Highlight the current page. NEVER use absolute URLs, external domains, http(s) links, ".html" with paths, or target attributes for internal nav.
+- Responsive (md:/lg:). Logo: a normal <img>. Missing product image: a tasteful muted placeholder <div> with the product's initial, never a broken image.
 
-DESIGN PRINCIPLES (non-negotiable)
-- Refined, high-end, custom feel. Avoid template clichés, default cobalt blue, harsh borders, clip-art energy.
-- Editorial typography: massive high-contrast display headlines (text-5xl–text-7xl, font-bold, tight tracking), restrained legible body, clear scale.
-- Spacing — density without clutter: py-20 to py-28 sections, gap-10/12, centered max-w-6xl containers.
-- THE 60-30-10 COLOR RULE (STRICT): 60% = a clean NEUTRAL canvas using the BACKGROUND color (if it is saturated, use a light/dark tint of it — never flood the page). 30% = subtle muted tones for alternating sections, cards, borders. 10% = the ACCENT color used sparingly for CTAs, active links, key highlights, the promo badge.
-- Micro-interactions: hover:shadow-xl, hover:-translate-y-1, transition-all duration-300 on cards/buttons. Tasteful.
+HOW TO MAKE IT GENUINELY GOOD (not generic)
+- Ground every choice in THIS business — its world, products, audience, and vibe. The site should feel made for this specific business, not any business.
+- The hero is a thesis: open with the most characteristic thing about this business — a bold, specific statement or striking layout or the signature product. Do NOT do the template hero (a centered "Welcome to [Name]" headline + subheadline + two buttons on a plain/gradient background).
+- Typography carries the personality: deliberately pair a CHARACTERFUL display face with a clean body face from Google Fonts that fit this business (e.g. a warm rounded sans for a cozy cafe, a refined serif for a boutique, a bold grotesk for something modern). Set a real type scale — big confident display sizes (text-5xl→text-7xl), restrained body. Make the type itself memorable.
+- Commit to a cohesive palette of 4–6 colors and follow the 60-30-10 rule: 60% a clean NEUTRAL canvas (use the BACKGROUND color; if it is saturated, use a light or dark TINT of it — never flood the page with saturation); 30% subtle secondary tones for alternating sections/cards/borders; 10% the ACCENT color used sparingly for CTAs, active links, key highlights, the promo badge.
+- Give the site ONE signature element it is remembered by (a distinctive section layout, a bold type treatment, a motif drawn from the business's world). Spend your boldness there; keep everything else quiet and disciplined.
+- Generous, consistent spacing (py-20 to py-28 sections, gap-10/12, centered max-w-6xl). Tasteful micro-interactions only (hover:-translate-y-1, hover:shadow-xl, transition). Over-animating reads as AI-generated.
+
+DO NOT use these AI-generated clichés unless the brief explicitly asks for them:
+- Cream (#F4F1EA-ish) background + high-contrast serif + terracotta accent.
+- Near-black background with a single acid-green or vermilion accent.
+- Broadsheet/newspaper hairline-rule layout with zero border-radius.
+- The generic centered "Welcome to [Business]" hero.
+- Decorative 01/02/03 numbered markers when the content is not actually a sequence.
+
+COPY (it is design material — write it well)
+- Write specific, real copy for THIS business: concrete, plain, active voice, from the visitor's point of view. Headlines that say something true and particular. Product blurbs that make the actual item sound good.
+- NEVER use lorem ipsum or filler like "Welcome to our business", "Our mission is to provide quality", or "We value our customers."
 
 PAGE CONTENT
-- index.html (Home): sticky header; a striking hero (massive headline, the About text as a subheadline, the promo shown with the accent, 1–2 CTA buttons); a highlights/"why us" band (3–4 columns); a featured-products strip; a closing call-to-action band; footer.
-- menu.html (Menu/Catalog): header; a section title; the FULL catalog as a responsive grid showing EVERY product with its exact image, name, price (accent color), and description; cards with hover lift; footer.
-- about.html (About): header; the business's real story in a couple of substantial paragraphs; a stat row or image; a short testimonials / "loved by locals" section; footer.
-- contact.html (Contact): header; a structured contact block with the address, hours, phone, and email; a warm "Visit us" message; footer.
+- index.html (Home): header; a distinctive hero (per above); a section that conveys what makes this business special; a featured-products strip; the promo/discount featured cleanly; a closing CTA; footer.
+- menu.html (Menu/Catalog): header; the FULL catalog as a polished responsive grid — EVERY product with its exact image, name, price (accent), and description; footer.
+- about.html (About): header; the business's real story in a couple of substantial, specific paragraphs; a supporting visual or stat row; footer.
+- contact.html (Contact): header; a well-designed contact block with the address, hours, phone, and email, and a warm invitation to visit; footer.
 
 USE THE REAL BUSINESS DATA (critical)
-- Use the real business name, type, about/story, address, hours, phone, email, discounts, and the exact product list. Write specific, persuasive copy for THIS business — real headlines and product blurbs. NEVER lorem ipsum or generic filler.
-- Show EVERY product with its exact provided image URL, name, price, and description. Feature any discount/promo prominently.
+- Use the real business name, type, about/story, address, hours, phone, email, discounts, and the exact product list everywhere. Show EVERY product with its exact provided image URL, name, price, and description.
 - Only use contact details that were provided; omit anything missing gracefully. Never invent phone numbers, emails, addresses, or social links.
 
+QUALITY FLOOR
+- Responsive down to mobile; visible keyboard focus states; respect prefers-reduced-motion.
+
 NO PAYMENTS OR BOOKING
-- No online payments or bookings. Don't build or fake checkout/cart/booking forms. "Order/Buy/Book" buttons should invite visitors to come in (use the address) or call/email, or link to contact.html.`
+- No online payments or bookings. Don't build or fake checkout/cart/booking forms. "Order/Buy/Book" buttons invite visitors to come in (use the address) or call/email, or link to contact.html.`
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -99,21 +107,13 @@ Deno.serve(async (req) => {
       instruction?: string
     }
 
-    // Identify the caller so we host under their own folder.
-    const jwt = (req.headers.get('Authorization') ?? '').replace(/^Bearer\s+/i, '')
-    const supaUrl = Deno.env.get('SUPABASE_URL')!
-    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const admin = createClient(supaUrl, serviceKey, { auth: { persistSession: false } })
-    const { data: { user }, error: userErr } = await admin.auth.getUser(jwt)
-    if (userErr || !user) return json({ error: 'Not authenticated.' }, 401)
-
     const apiKey =
       Deno.env.get('WEBSITE_AI_KEY') ??
       Deno.env.get('CAMPAIGN_AI_KEY') ??
       Deno.env.get('OPENROUTER_API_KEY')
     if (!apiKey) return json({ error: 'No AI API key configured.' }, 500)
-    const requestedModel = Deno.env.get('WEBSITE_AI_MODEL') ?? 'anthropic/claude-sonnet-4.6'
-    const FALLBACK_MODEL = 'anthropic/claude-sonnet-4.5'
+    const requestedModel = Deno.env.get('WEBSITE_AI_MODEL') ?? 'google/gemini-2.5-flash'
+    const FALLBACK_MODEL = 'openai/gpt-4.1-mini'
 
     const brief = buildBrief(inputs ?? {})
     const isEdit = currentFiles && Object.keys(currentFiles).length > 0 && !!instruction
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
 
     const mkBody = (m: string) => JSON.stringify({
       model: m,
-      max_tokens: 32000,
+      max_tokens: 20000,
       provider: { sort: 'throughput' },
       messages: [
         { role: 'system', content: DESIGN_RULES },
@@ -194,26 +194,10 @@ Deno.serve(async (req) => {
       return json({ error: 'The model did not return a usable website. Please try again.' }, 200)
     }
 
-    // Host the files under the user's private folder. Same path each time = the
-    // site updates in place (one active site per user).
-    const base = `${user.id}/site`
-    for (const [name, content] of Object.entries(files)) {
-      const type = contentTypeFor(name)
-      // Use a typed Blob so Storage serves the file with the right Content-Type
-      // (raw byte uploads were defaulting to text/plain, so HTML showed as code).
-      const blob = new Blob([content], { type })
-      const { error: upErr } = await admin.storage.from(BUCKET).upload(`${base}/${name}`, blob, {
-        contentType: type,
-        upsert: true,
-      })
-      if (upErr) {
-        console.error('host upload failed for', name, upErr)
-        return json({ error: `Could not host the site (${name}): ${upErr.message}` }, 200)
-      }
-    }
-
-    const { data: { publicUrl } } = admin.storage.from(BUCKET).getPublicUrl(`${base}/index.html`)
-    return json({ files, url: publicUrl }, 200)
+    // Return the files for the app to render directly (Supabase Storage refuses
+    // to serve user HTML as renderable text/html, so we do NOT host here — the
+    // app previews the files in-browser and the user downloads them to go live).
+    return json({ files }, 200)
   } catch (err) {
     console.error(err)
     return json({ error: (err as Error).message }, 500)
@@ -241,13 +225,6 @@ function parseFiles(raw: string): Record<string, string> {
     if (name && content) files[name] = content
   }
   return files
-}
-
-function contentTypeFor(name: string): string {
-  if (name.endsWith('.html')) return 'text/html; charset=utf-8'
-  if (name.endsWith('.css')) return 'text/css; charset=utf-8'
-  if (name.endsWith('.js')) return 'application/javascript; charset=utf-8'
-  return 'text/plain; charset=utf-8'
 }
 
 function buildBrief(inputs: WebsiteInputs): string {
