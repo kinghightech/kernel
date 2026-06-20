@@ -219,10 +219,12 @@ export default function Onboarding() {
     }
   };
 
-  // Final step: pick a theme, save it, apply it, then enter the app.
+  // Final step: pick a theme and save it, then enter the app.
+  // We keep the screen dark through the payment page (it's always dark) so the
+  // handoff stays smooth — the chosen theme is applied once inside the dashboard.
   const finishWithTheme = async (chosen: Theme) => {
     setTheme(chosen);
-    applyTheme(chosen);
+    applyTheme('dark');
     const data = { ...collectData(), theme: chosen };
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {

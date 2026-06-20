@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
-import { Home, Sparkles, LogOut, Settings, Megaphone } from 'lucide-react';
+import { Home, Sparkles, LogOut, Settings, Megaphone, Globe } from 'lucide-react';
 import { supabase } from '../supabase';
 import { useSubscription } from '../billing';
 import { flushPendingOnboarding } from '../onboarding';
-import { applyTheme } from '../theme';
+import { applyTheme, type Theme } from '../theme';
 import PayWall from './PayWall';
 
 const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
@@ -17,6 +17,7 @@ const navItems = [
   { to: '/dashboard', label: 'Home', icon: Home, end: true },
   { to: '/dashboard/ai', label: 'AI', icon: Sparkles, end: false },
   { to: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, end: false },
+  { to: '/dashboard/website', label: 'Website', icon: Globe, end: false },
 ];
 
 export default function DashboardLayout() {
@@ -43,9 +44,12 @@ export default function DashboardLayout() {
     return () => clearInterval(id);
   }, [justPaid, isActive, refresh]);
 
-  // Check onboarding completion, flush staged answers, and apply the saved theme.
+  // Check onboarding completion and flush staged answers. We remember the saved
+  // theme but only apply it once the user is a paying member on the real
+  // dashboard — so the paywall handoff stays dark and never flashes.
   const [obLoading, setObLoading] = useState(true);
   const [hasOnboarded, setHasOnboarded] = useState(false);
+  const [savedTheme, setSavedTheme] = useState<Theme | null>(null);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -57,11 +61,21 @@ export default function DashboardLayout() {
         .select('user_id, theme')
         .eq('user_id', user.id)
         .maybeSingle();
-      if (data?.theme) applyTheme(data.theme === 'light' ? 'light' : 'dark');
-      if (!cancelled) { setHasOnboarded(!!data); setObLoading(false); }
+      if (!cancelled) {
+        setSavedTheme(data?.theme === 'light' ? 'light' : 'dark');
+        setHasOnboarded(!!data);
+        setObLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Apply the real theme only when we know the user is active (past the paywall).
+  useEffect(() => {
+    if (loading || obLoading) return;
+    if (!isActive) { applyTheme('dark'); return; }
+    if (savedTheme) applyTheme(savedTheme);
+  }, [loading, obLoading, isActive, savedTheme]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

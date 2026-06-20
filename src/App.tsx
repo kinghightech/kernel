@@ -8,6 +8,7 @@ import DashboardLayout from './pages/DashboardLayout';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Marketing from './pages/Marketing';
+import Website from './pages/Website';
 import Onboarding from './pages/Onboarding';
 import Checkout from './pages/Checkout';
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'motion/react';
@@ -775,6 +776,7 @@ export default function App() {
           <Route index element={<Home />} />
           <Route path="ai" element={<AIChat />} />
           <Route path="marketing" element={<Marketing />} />
+          <Route path="website" element={<Website />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

@@ -41,7 +41,8 @@ html, body {
 
 .c3-pricing-section { position: relative; padding: 40px 20px 80px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
 .c3-watermark-container { position: relative; width: 100%; max-width: 1100px; text-align: center; margin-top: 40px; z-index: 2; }
-.c3-watermark-main { font-size: 9rem; font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; filter: url(#c3-noise); display: flex; flex-direction: column; align-items: center; }
+.c3-watermark-main { font-size: clamp(2.5rem, 8.5vw, 9rem); font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; filter: url(#c3-noise); display: flex; flex-direction: column; align-items: center; max-width: 100%; }
+.c3-watermark-line-1, .c3-watermark-line-2 { white-space: nowrap; }
 .c3-watermark-line-1 { color: #fff; }
 .c3-watermark-line-2 { background: linear-gradient(to right, #091020 0%, #0B2551 25%, #A4F4FD 65%, #00d2ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
 .c3-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%; max-width: 1100px; margin-top: 60px; transform: translateX(20px); position: relative; z-index: 3; }
@@ -64,7 +65,7 @@ html, body {
 .c3-toggle.active .c3-toggle-knob { transform: translateX(24px); background:#fff; }
 
 @media (max-width:1024px) {
-  .c3-watermark-main { font-size: 3.5rem; filter:none; }
+  .c3-watermark-main { font-size: clamp(1.9rem, 9vw, 3.5rem); filter:none; }
   .c3-watermark-line-2 { background:none; -webkit-text-fill-color:#00d2ff; color:#00d2ff; }
   .c3-grid { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; transform:none; width:100vw; padding:0 20px; gap:16px; scrollbar-width:none; }
   .c3-grid::-webkit-scrollbar{display:none}
