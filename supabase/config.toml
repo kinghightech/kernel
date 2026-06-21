@@ -427,3 +427,16 @@ verify_jwt = true
 
 [functions.generate-image]
 verify_jwt = true
+
+# Square: this function must stay verify_jwt = false because Square's browser
+# redirect to /callback cannot carry a Supabase login token. The function checks
+# the user's token by hand on the start/status/disconnect actions.
+[functions.square-oauth]
+enabled = true
+verify_jwt = false
+
+# Square data reader. Checks the user's token by hand, so verify_jwt is off here
+# too (keeps the Authorization header as the user token, not the platform's).
+[functions.square-data]
+enabled = true
+verify_jwt = false
