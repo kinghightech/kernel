@@ -440,3 +440,13 @@ verify_jwt = false
 [functions.square-data]
 enabled = true
 verify_jwt = false
+
+# Retell voice agent webhook. Retell calls this directly, so no JWT.
+[functions.voice-webhook]
+enabled = true
+verify_jwt = false
+
+# Enable/disable toggle + phone number provisioning. Called from the dashboard.
+[functions.voice-agent]
+enabled = true
+verify_jwt = true

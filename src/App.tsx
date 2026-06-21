@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { supabase } from './supabase';
 import { startCheckout } from './billing';
@@ -9,16 +9,11 @@ import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Marketing from './pages/Marketing';
 import Website from './pages/Website';
+import Voice from './pages/Voice';
 import Onboarding from './pages/Onboarding';
 import Checkout from './pages/Checkout';
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'motion/react';
-import { ChevronRight, Search, Sparkles, Paperclip, Trash2, MoreHorizontal, Reply, Forward, Archive } from 'lucide-react';
-
-const AppleLogo = ({ className = 'w-4 h-4' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 384 512" fill="currentColor">
-    <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
-  </svg>
-);
+import { ChevronRight, Sparkles } from 'lucide-react';
 
 const LogoMark = ({ className = 'w-28 h-28 object-contain' }: { className?: string }) => (
   <img src="/logo.png" alt="Kernel Logo" className={className} />
@@ -122,6 +117,122 @@ const SectionEyebrow = ({ label, tag }: { label: string; tag?: string }) => (
   </div>
 );
 
+// Scroll-driven flower frame sequence. As the user scrolls through the tall
+// container, the "video" plays forward; scrolling back up rewinds it. The
+// frames are pre-keyed transparent WebP (black background removed, watermark
+// stripped — see scripts/key_flower.py), so the flower composites cleanly over
+// the page with no backing rectangle.
+const FLOWER_FRAME_COUNT = 240;
+const flowerFrameUrl = (i: number) =>
+  `/flower_t/frame-${String(i).padStart(3, '0')}.webp`;
+
+function FlowerScroll() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const [ready, setReady] = useState(false);
+
+  // Draw a single frame (1-based index) plus the watermark cover box.
+  const drawFrame = (index: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const img = imagesRef.current[index - 1];
+    if (!img || !img.complete || img.naturalWidth === 0) return;
+
+    // Transparent frames: clear first so the previous silhouette doesn't linger.
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  };
+
+  // Preload every frame so scrubbing is instant.
+  useEffect(() => {
+    const imgs: HTMLImageElement[] = [];
+    let loaded = 0;
+    for (let i = 1; i <= FLOWER_FRAME_COUNT; i++) {
+      const img = new Image();
+      img.src = flowerFrameUrl(i);
+      img.onload = () => {
+        loaded += 1;
+        if (i === 1) drawFrame(1); // paint the first frame ASAP
+        if (loaded === FLOWER_FRAME_COUNT) setReady(true);
+      };
+      imgs.push(img);
+    }
+    imagesRef.current = imgs;
+  }, []);
+
+  // Map scroll progress through the container to a frame index.
+  useEffect(() => {
+    let rafId = 0;
+    const onScroll = () => {
+      const el = containerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const scrollable = el.offsetHeight - window.innerHeight;
+      const progress = scrollable > 0 ? -rect.top / scrollable : 0;
+      const clamped = Math.min(Math.max(progress, 0), 1);
+      const frame = Math.min(
+        FLOWER_FRAME_COUNT,
+        Math.max(1, Math.round(clamped * (FLOWER_FRAME_COUNT - 1)) + 1)
+      );
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => drawFrame(frame));
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    onScroll();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(rafId);
+    };
+  }, [ready]);
+
+  // Iridescent gradient for the animated "bloom" word — echoes the flower's
+  // blue/pink. `animate-shiny` flows the gradient; the motion scale makes it breathe.
+  const bloomGradient: React.CSSProperties = {
+    backgroundImage:
+      'linear-gradient(to right, #A4F4FD 0%, #00d2ff 25%, #c08cff 50%, #00d2ff 75%, #A4F4FD 100%)',
+    backgroundSize: '200% auto',
+    WebkitBackgroundClip: 'text',
+    backgroundClip: 'text',
+    color: 'transparent',
+    WebkitTextFillColor: 'transparent',
+  };
+
+  return (
+    <div ref={containerRef} className="relative h-[300vh]">
+      <div className="sticky top-0 flex h-screen flex-col items-center justify-center">
+        <canvas
+          ref={canvasRef}
+          width={1280}
+          height={720}
+          className="block h-[68vh] w-full max-w-[1600px] object-contain"
+        />
+        <motion.h2
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="-mt-[3vh] md:-mt-[5vh] text-center text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight"
+        >
+          Get ready for your business to{' '}
+          <motion.span
+            className="animate-shiny inline-block"
+            style={bloomGradient}
+            animate={{ scale: [1, 1.08, 1] }}
+            transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            bloom
+          </motion.span>
+        </motion.h2>
+      </div>
+    </div>
+  );
+}
+
 function Landing() {
   const navigate = useNavigate();
 
@@ -136,7 +247,7 @@ function Landing() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#0c0c0c] text-white">
+    <div className="relative min-h-screen overflow-x-clip bg-[#0c0c0c] text-white">
       {/* Global background video */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <video autoPlay loop muted playsInline
@@ -224,173 +335,8 @@ function Landing() {
           </motion.div>
         </section>
 
-        {/* Sections 3 & 4 Wrapper */}
-        <section className="w-full px-6 md:px-12 py-16 md:py-24">
-          {/* Section 3 — macOS menu bar strip */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.9 }}
-            className="mb-2"
-          >
-            <div className="w-full h-10 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-between text-xs font-medium px-4">
-              <div className="flex items-center gap-4">
-                <AppleLogo className="w-3.5 h-3.5" />
-                <span className="font-bold text-white">Kernel</span>
-                {['File', 'Edit', 'View', 'Go', 'Window', 'Help'].map((item, index) => (
-                  <span key={item} className={`text-white/80 ${index > 2 ? 'hidden sm:inline' : ''} ${index > 3 ? 'hidden md:inline' : ''}`}>
-                    {item}
-                  </span>
-                ))}
-              </div>
-              <div className="flex items-center gap-3 text-white/80">
-                <Search className="w-3.5 h-3.5" />
-                <span>Wed May 6 1:09 PM</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Section 4 — Inbox mockup */}
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 1.1 }}
-          >
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#0e1014]/90 backdrop-blur-2xl">
-              {/* Title bar */}
-              <div className="h-10 flex items-center px-4 border-b border-white/10 relative">
-              <div className="flex gap-2 z-10">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-                <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-                <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-              </div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xs text-white/50 font-medium">Kernel — Inbox</span>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="grid grid-cols-1 md:grid-cols-12 h-[600px] md:h-[520px]">
-              {/* Sidebar */}
-              <div className="hidden md:block col-span-3 border-r border-white/10 bg-black/30 p-4">
-                <button className="w-full flex items-center justify-center gap-2 rounded-lg bg-white text-black text-xs font-semibold px-3 py-2 mb-6 hover:bg-white/90 transition-colors">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Compose with Kernel
-                </button>
-                <div className="space-y-1 mb-8">
-                  {[
-                    { label: 'Inbox', icon: 'Inbox', count: 12, active: true },
-                    { label: 'Starred', icon: 'Star', count: 3 },
-                    { label: 'Sent', icon: 'Send' },
-                    { label: 'Drafts', icon: 'File', count: 2 },
-                    { label: 'Archive', icon: 'Archive' },
-                    { label: 'Trash', icon: 'Trash2' },
-                  ].map(item => (
-                    <div key={item.label} className={`flex items-center justify-between px-3 py-1.5 rounded-md text-sm cursor-pointer ${item.active ? 'bg-white/10 text-white' : 'text-white/60 hover:bg-white/5'}`}>
-                      <span>{item.label}</span>
-                      {item.count && <span className="text-xs">{item.count}</span>}
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-3 px-3">Labels</div>
-                  <div className="space-y-1">
-                    {[
-                      { label: 'Work', color: '#00d2ff' },
-                      { label: 'Personal', color: '#A4F4FD' },
-                      { label: 'Travel', color: '#f59e0b' },
-                      { label: 'Finance', color: '#10b981' },
-                    ].map(label => (
-                      <div key={label.label} className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-white/60 hover:bg-white/5 cursor-pointer">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: label.color }} />
-                        {label.label}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Message list */}
-              <div className="col-span-12 md:col-span-4 border-r border-white/10 flex flex-col bg-black/10">
-                <div className="p-3 border-b border-white/10 flex items-center gap-2 text-white/40">
-                  <Search className="w-4 h-4" />
-                  <span className="text-sm">Search mail</span>
-                </div>
-                <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
-                  {[
-                    { sender: 'Linear', subject: 'Weekly product digest', preview: 'Your team shipped 23 issues this week...', time: '9:41 AM', unread: true, active: true },
-                    { sender: 'Sophia Chen', subject: 'Re: Q3 roadmap review', preview: 'Thanks for sending the deck over. I had a few thoughts...', time: '8:12 AM', unread: true },
-                    { sender: 'Figma', subject: 'Marcus commented on your file', preview: 'Love the new direction on the landing hero.', time: 'Yesterday' },
-                    { sender: 'Stripe', subject: 'Payout of $12,480.00 sent', preview: 'Your payout is on its way to your bank...', time: 'Yesterday' },
-                    { sender: 'Vercel', subject: 'Deployment ready for kernel-web', preview: 'Preview is live at kernel-web-g3f.vercel.app', time: 'Mon' },
-                    { sender: 'GitHub', subject: '[kernel/core] PR #482 approved', preview: 'david-lim approved your pull request.', time: 'Mon' },
-                  ].map((msg, i) => (
-                    <div key={i} className={`p-4 border-b border-white/5 cursor-pointer ${msg.active ? 'bg-white/5' : 'hover:bg-white/[0.02]'}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className={`text-sm ${msg.unread ? 'font-semibold text-white' : 'font-medium text-white/80'}`}>{msg.sender}</span>
-                        <span className={`text-xs ${msg.active ? 'text-brand' : 'text-white/40'}`}>{msg.time}</span>
-                      </div>
-                      <div className={`text-sm mb-1 truncate ${msg.unread ? 'font-medium text-white/90' : 'text-white/70'}`}>{msg.subject}</div>
-                      <div className="text-xs text-white/50 truncate">{msg.preview}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Reader */}
-              <div className="hidden md:flex col-span-5 flex-col bg-black/5">
-                <div className="h-14 border-b border-white/10 flex items-center justify-between px-4">
-                  <div className="flex items-center gap-1">
-                    <button className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center text-white/60 transition-colors"><Reply className="w-4 h-4" /></button>
-                    <button className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center text-white/60 transition-colors"><Forward className="w-4 h-4" /></button>
-                    <div className="w-px h-4 bg-white/10 mx-1" />
-                    <button className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center text-white/60 transition-colors"><Archive className="w-4 h-4" /></button>
-                    <button className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center text-white/60 transition-colors"><Trash2 className="w-4 h-4" /></button>
-                  </div>
-                  <button className="w-7 h-7 rounded-md hover:bg-white/5 flex items-center justify-center text-white/60 transition-colors"><MoreHorizontal className="w-4 h-4" /></button>
-                </div>
-                <div className="flex-1 p-8 overflow-y-auto">
-                  <h2 className="text-xl font-semibold mb-6">Weekly product digest</h2>
-                  <div className="flex items-start justify-between mb-8">
-                    <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00d2ff] to-[#0B2551] flex items-center justify-center text-xs font-semibold">L</div>
-                      <div>
-                        <div className="text-sm font-medium">Linear <span className="text-white/50 font-normal">to me · 9:41 AM</span></div>
-                      </div>
-                    </div>
-                    <span className="px-2 py-0.5 rounded-full border border-[#00d2ff]/30 text-[#00d2ff] text-xs">Work</span>
-                  </div>
-
-                  <div className="liquid-glass rounded-xl p-4 mb-8">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-4 h-4 text-[#A4F4FD]" />
-                      <span className="text-sm font-medium text-[#A4F4FD]">Summary by Kernel</span>
-                    </div>
-                    <p className="text-sm text-white/80 leading-relaxed">
-                      Your team closed 23 issues, merged 14 PRs, and shipped 2 features. Top contributor: Marcus. No action needed.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4 text-sm text-white/80 leading-relaxed">
-                    <p>Hi team,</p>
-                    <p>Here is your weekly digest of everything happening across your projects. This was a strong week with significant progress on the Q3 roadmap.</p>
-                    <p>Twenty-three issues were closed, fourteen pull requests were merged, and two customer-facing features went out. The velocity trend continues to climb.</p>
-                    <p>Let me know if you would like a deeper breakdown by project or contributor.</p>
-                    <p className="text-white/50 pt-2">— The Linear team</p>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-white/10">
-                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-white/5 text-sm hover:bg-white/10 cursor-pointer transition-colors">
-                      <Paperclip className="w-4 h-4 text-white/50" />
-                      <span>digest-may-6.pdf</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-        </section>
+        {/* Section 3 & 4 — Scroll-driven flower sequence */}
+        <FlowerScroll />
 
         {/* Section 5 — FeatureTriage */}
         <section className="w-full px-6 md:px-12 py-20 md:py-28">
@@ -777,6 +723,7 @@ export default function App() {
           <Route path="ai" element={<AIChat />} />
           <Route path="marketing" element={<Marketing />} />
           <Route path="website" element={<Website />} />
+          <Route path="voice" element={<Voice />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
