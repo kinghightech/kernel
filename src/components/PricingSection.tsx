@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Plan, Interval } from '../billing';
 
-export type PlanChoice = 'free' | Plan;
+export type PlanChoice = Plan;
 
 const Check = () => (
   <div className="c3-check">
@@ -44,18 +44,6 @@ export default function PricingSection({
       </div>
 
       <div className="c3-grid">
-        <div className="c3-card">
-          <div className="c3-tier-small">Free</div>
-          <div className="c3-tier-large">Free</div>
-          <div className="c3-desc">Get started and keep your day organized.</div>
-          <ul className="c3-list">
-            <li><Check />Daily checklists &amp; to-do list</li>
-            <li><Check />Business dashboard home</li>
-            <li><Check />Access via web</li>
-          </ul>
-          <button className="c3-btn" onClick={() => onChoose('free', interval)}>Choose Plan</button>
-        </div>
-
         <div
           className="c3-card"
           style={{

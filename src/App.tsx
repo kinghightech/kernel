@@ -442,10 +442,7 @@ function Landing() {
         </section>
 
         {/* Section 8 — Pricing */}
-        <PricingSection onChoose={(plan, intv) => {
-          if (plan === 'free') navigate('/onboarding');
-          else startCheckout(plan, intv);
-        }} />
+        <PricingSection onChoose={(plan, intv) => startCheckout(plan, intv)} />
 
         {/* Section 9 — FinalCTA */}
         <section className="w-full px-6 md:px-12 py-20 md:py-32">

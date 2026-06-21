@@ -43,10 +43,7 @@ export default function PayWall() {
       >
         <PricingSection
           watermark={{ line1: 'Choose the best', line2: 'plan for you' }}
-          onChoose={(plan, interval) => {
-            if (plan === 'free') { window.location.href = '/'; return; }
-            startCheckout(plan, interval);
-          }}
+          onChoose={(plan, interval) => startCheckout(plan, interval)}
         />
       </motion.div>
     </motion.div>

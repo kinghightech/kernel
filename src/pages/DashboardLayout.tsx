@@ -5,6 +5,7 @@ import { supabase } from '../supabase';
 import { useSubscription } from '../billing';
 import { flushPendingOnboarding } from '../onboarding';
 import { applyTheme, type Theme } from '../theme';
+import PayWall from './PayWall';
 
 const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
   <svg className={className} viewBox="0 0 256 256" fill="currentColor">
@@ -100,7 +101,7 @@ export default function DashboardLayout() {
 
   if (!user) return <Navigate to="/auth" replace />;
   if (!hasOnboarded) return <Navigate to="/onboarding" replace />;
-  // Paywall removed — app is live and open to any signed-in, onboarded user.
+  if (!isActive) return <PayWall />; // must have a paid subscription to enter
 
   return (
     <div className="flex h-screen bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white overflow-hidden">
