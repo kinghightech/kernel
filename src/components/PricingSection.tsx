@@ -26,7 +26,7 @@ export default function PricingSection({
   return (
     <section className="c3-pricing-section">
       <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <filter id="c3-noise-pricing">
+        <filter id="c3-noise-pricing" x="-20%" y="-20%" width="140%" height="140%">
           <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="2" stitchTiles="stitch" />
           <feComponentTransfer><feFuncA type="linear" slope="0.075" /></feComponentTransfer>
           <feComposite in2="SourceGraphic" operator="in" result="noise" />

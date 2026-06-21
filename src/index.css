@@ -41,10 +41,10 @@ html, body {
 
 .c3-pricing-section { position: relative; padding: 40px 20px 80px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
 .c3-watermark-container { position: relative; width: 100%; max-width: 1100px; text-align: center; margin-top: 40px; z-index: 2; }
-.c3-watermark-main { font-size: clamp(2.5rem, 8.5vw, 9rem); font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; filter: url(#c3-noise); display: flex; flex-direction: column; align-items: center; max-width: 100%; }
-.c3-watermark-line-1, .c3-watermark-line-2 { white-space: nowrap; }
+.c3-watermark-main { font-size: clamp(2.5rem, 8.5vw, 9rem); font-weight: 800; line-height: 0.9; letter-spacing: -0.05em; display: flex; flex-direction: column; align-items: center; max-width: 100%; overflow: visible; }
+.c3-watermark-line-1, .c3-watermark-line-2 { white-space: nowrap; line-height: 0.9; }
 .c3-watermark-line-1 { color: #fff; }
-.c3-watermark-line-2 { background: linear-gradient(to right, #091020 0%, #0B2551 25%, #A4F4FD 65%, #00d2ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+.c3-watermark-line-2 { padding-bottom: 0.22em; background: linear-gradient(to right, #6f9be8 0%, #A4F4FD 50%, #00d2ff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
 .c3-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 360px)); gap: 24px; width: 100%; max-width: 820px; margin-top: 60px; justify-content: center; position: relative; z-index: 3; }
 .c3-card { background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(0,0,0,0.4)); backdrop-filter: blur(14px) brightness(0.91); border: 1px solid rgba(255,255,255,1); border-radius: 44px; padding: 50px 24px; min-height: 580px; display: flex; flex-direction: column; transition: all 0.6s cubic-bezier(.22,1,.36,1); overflow: hidden; position: relative; }
 .c3-card::before { content:''; position:absolute; inset:0; border-radius:inherit; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%); pointer-events:none; }
