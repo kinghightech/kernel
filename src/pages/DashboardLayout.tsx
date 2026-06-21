@@ -5,7 +5,6 @@ import { supabase } from '../supabase';
 import { useSubscription } from '../billing';
 import { flushPendingOnboarding } from '../onboarding';
 import { applyTheme, type Theme } from '../theme';
-import PayWall from './PayWall';
 
 const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
   <svg className={className} viewBox="0 0 256 256" fill="currentColor">
@@ -71,12 +70,11 @@ export default function DashboardLayout() {
     return () => { cancelled = true; };
   }, []);
 
-  // Apply the real theme only when we know the user is active (past the paywall).
+  // Apply the user's saved theme once their data has loaded.
   useEffect(() => {
     if (loading || obLoading) return;
-    if (!isActive) { applyTheme('dark'); return; }
-    if (savedTheme) applyTheme(savedTheme);
-  }, [loading, obLoading, isActive, savedTheme]);
+    applyTheme(savedTheme ?? 'dark');
+  }, [loading, obLoading, savedTheme]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -101,7 +99,7 @@ export default function DashboardLayout() {
 
   if (!user) return <Navigate to="/auth" replace />;
   if (!hasOnboarded) return <Navigate to="/onboarding" replace />;
-  if (!isActive) return <PayWall />;
+  // Paywall removed — app is live and open to any signed-in, onboarded user.
 
   return (
     <div className="flex h-screen bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white overflow-hidden">

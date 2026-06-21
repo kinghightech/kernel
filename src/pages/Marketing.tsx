@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Megaphone, Sparkles, ArrowLeft, ThumbsUp, ThumbsDown, ImagePlus, X, Hash, Loader2, Trash2, Calendar, Wand2,
+  MapPin, ExternalLink, Ticket,
 } from 'lucide-react';
 import {
   generateCampaign, generateImage, saveCampaign, loadCampaigns, deleteCampaign,
   type Campaign, type CampaignInputs, type SavedCampaign,
 } from '../campaigns';
+import { useOnboarding } from '../onboarding';
+import { fetchLocalEvents, type LocalEvent } from '../insights';
 
 const PLATFORMS = ['Instagram', 'TikTok', 'X (Twitter)', 'Facebook', 'LinkedIn', 'YouTube'];
 const GOALS = ['Awareness', 'Sales', 'Engagement', 'Product launch', 'Grow followers'];
@@ -70,6 +73,22 @@ export default function Marketing() {
   };
 
   useEffect(() => { loadCampaigns().then(setSaved); }, []);
+
+  // Local events near the business (Ticketmaster), for the Upcoming Events section.
+  const { data: onboarding } = useOnboarding();
+  const [events, setEvents] = useState<LocalEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  useEffect(() => {
+    const lat = onboarding?.lat, lng = onboarding?.lng;
+    if (lat == null || lng == null) return;
+    let cancelled = false;
+    setEventsLoading(true);
+    fetchLocalEvents(lat, lng, onboarding?.address)
+      .then(ev => { if (!cancelled) setEvents(ev); })
+      .catch(e => console.error('events failed', e))
+      .finally(() => { if (!cancelled) setEventsLoading(false); });
+    return () => { cancelled = true; };
+  }, [onboarding?.lat, onboarding?.lng]);
 
   const togglePlatform = (p: string) =>
     setPlatforms(prev => (prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]));
@@ -197,6 +216,47 @@ export default function Marketing() {
                 </div>
               </div>
             )}
+
+            {/* Upcoming local events (Ticketmaster) — marketing opportunities nearby */}
+            <div className="mt-12">
+              <div className="flex items-center gap-2 mb-1">
+                <Ticket className="w-4 h-4 text-blue-500" />
+                <h3 className="text-sm font-semibold text-neutral-500 dark:text-white/60">Upcoming events near you</h3>
+              </div>
+              <p className="text-xs text-neutral-400 dark:text-white/40 mb-4">Big local events mean more foot traffic — plan a promo around them.</p>
+
+              {eventsLoading ? (
+                <div className="flex items-center gap-2 text-neutral-500 dark:text-white/50 text-sm">
+                  <Loader2 className="w-4 h-4 animate-spin" /> Finding events nearby…
+                </div>
+              ) : events.length === 0 ? (
+                <p className="text-sm text-neutral-400 dark:text-white/30">No events found nearby right now.</p>
+              ) : (
+                <div className="space-y-3">
+                  {events.slice(0, 8).map(ev => (
+                    <a
+                      key={ev.id}
+                      href={ev.url ?? '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${card} p-4 flex items-center gap-4 hover:border-blue-500/50 transition-colors group`}
+                    >
+                      {ev.image && (
+                        <img src={ev.image} alt="" className="w-16 h-16 rounded-lg object-cover border border-black/10 dark:border-white/10 shrink-0" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold truncate">{ev.name}</div>
+                        <div className="text-xs text-neutral-500 dark:text-white/50 mt-1 flex items-center gap-3">
+                          {ev.date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(ev.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                          {ev.venue && <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" />{ev.venue}</span>}
+                        </div>
+                      </div>
+                      <ExternalLink className="w-4 h-4 text-neutral-400 dark:text-white/40 shrink-0 group-hover:text-blue-500 transition-colors" />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         )}
 

@@ -107,7 +107,6 @@ export default function AIChat() {
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-black/10 dark:border-white/10 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <span className="font-semibold tracking-tight">Kernel AI</span>
-          <span className="px-2 py-0.5 rounded-full border border-black/10 text-neutral-500 dark:border-white/10 dark:text-white/50 text-xs">deepseek-v4-flash</span>
         </div>
       </header>
 
