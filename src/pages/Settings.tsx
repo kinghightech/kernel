@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, CreditCard, Loader2, Sun, Moon, Check, AlertCircle, RefreshCw, Plug } from 'lucide-react';
+import { ChevronRight, CreditCard, Loader2, Sun, Moon, Check, AlertCircle, RefreshCw, Plug, Building2, MapPin, DollarSign, Percent, Users, Calendar, Tag } from 'lucide-react';
 import { useSubscription, openBillingPortal } from '../billing';
-import { saveTheme } from '../onboarding';
+import { saveTheme, useOnboarding } from '../onboarding';
 import { applyTheme, getStoredTheme, type Theme } from '../theme';
 import {
   connectSquare, disconnectSquare, getSquareStatus, fetchSquareData,
@@ -21,6 +21,8 @@ export default function Settings() {
   const { loading, user, plan, status, currentPeriodEnd } = useSubscription();
   const [opening, setOpening] = useState(false);
   const [theme, setThemeState] = useState<Theme>(getStoredTheme());
+
+  const { data: business } = useOnboarding();
 
   // --- Square integration state ---
   const [square, setSquare] = useState<SquareStatus>({ connected: false, connection: null });
@@ -129,6 +131,35 @@ export default function Settings() {
             <span className="text-sm">{user?.email ?? '—'}</span>
           </div>
         </div>
+
+        {/* Business information */}
+        {business && (() => {
+          const rows = [
+            { icon: Building2, label: 'Business type', value: business.businessType },
+            { icon: MapPin, label: 'Location', value: business.address },
+            { icon: DollarSign, label: 'Avg daily revenue', value: business.revenue ? `$${Number(business.revenue).toLocaleString()}` : null },
+            { icon: Percent, label: 'Profit margin', value: business.profitMargin ? `${business.profitMargin}%` : null },
+            { icon: Users, label: 'Business model', value: business.businessModel === 'Mixed' ? business.mixedModels.join(', ') : business.businessModel },
+            { icon: Calendar, label: 'Peak traffic', value: business.peakTraffic },
+            { icon: Users, label: 'Customers come from', value: business.customerSource },
+            { icon: Tag, label: 'Promotions', value: business.promotionStyle },
+          ].filter(r => r.value);
+          if (!rows.length) return null;
+          return (
+            <div className="rounded-2xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03] p-6 mb-6">
+              <h2 className="text-sm font-semibold text-neutral-500 dark:text-white/70 mb-4">Business information</h2>
+              <div className="divide-y divide-black/5 dark:divide-white/5 -my-2">
+                {rows.map(({ icon: Icon, label, value }) => (
+                  <div key={label} className="flex items-center gap-4 py-3">
+                    <Icon className="w-4 h-4 text-neutral-400 dark:text-white/40 shrink-0" />
+                    <span className="text-neutral-500 dark:text-white/50 text-sm w-40 shrink-0">{label}</span>
+                    <span className="text-sm text-neutral-900 dark:text-white/90">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Integrations — Square */}
         <div className="rounded-2xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03] p-6 mb-6">
@@ -283,6 +314,25 @@ export default function Settings() {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Support & Legal */}
+        <div className="rounded-2xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03] p-6">
+          <h2 className="text-sm font-semibold text-neutral-500 dark:text-white/70 mb-4">Support & Legal</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-500 dark:text-white/50 text-sm">Contact Support</span>
+              <a href="mailto:shibe.aahish@gmail.com" className="text-sm font-medium text-neutral-900 dark:text-white hover:text-neutral-600 dark:hover:text-white/70 transition-colors">shibe.aahish@gmail.com</a>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-500 dark:text-white/50 text-sm">Terms of Service</span>
+              <a href="https://kerneltermsofservice.notion.site/" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-neutral-900 dark:text-white hover:text-neutral-600 dark:hover:text-white/70 transition-colors">View Terms</a>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-neutral-500 dark:text-white/50 text-sm">Privacy Policy</span>
+              <a href="https://kernelprivacypolicy.notion.site/" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-neutral-900 dark:text-white hover:text-neutral-600 dark:hover:text-white/70 transition-colors">View Policy</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
