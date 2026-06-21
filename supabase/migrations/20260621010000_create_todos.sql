@@ -4,6 +4,7 @@ create table if not exists public.todos (
   user_id uuid not null references auth.users(id) on delete cascade,
   text text not null,
   done boolean not null default false,
+  due_date date,                       -- which day this task is for (null = no date)
   created_at timestamptz not null default now()
 );
 

@@ -317,7 +317,7 @@ export default function Settings() {
         </div>
 
         {/* Support & Legal */}
-        <div className="rounded-2xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03] p-6">
+        <div className="rounded-2xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03] p-6 mt-8 mb-6">
           <h2 className="text-sm font-semibold text-neutral-500 dark:text-white/70 mb-4">Support & Legal</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">

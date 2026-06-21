@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
-import { Home, Sparkles, LogOut, Settings, Megaphone, Globe, PhoneCall } from 'lucide-react';
+import { Home, Sparkles, LogOut, Settings, Megaphone, Globe, PhoneCall, ListChecks } from 'lucide-react';
 import { supabase } from '../supabase';
 import { useSubscription } from '../billing';
 import { flushPendingOnboarding } from '../onboarding';
@@ -18,6 +18,7 @@ const navItems = [
   { to: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, end: false },
   { to: '/dashboard/website', label: 'Website', icon: Globe, end: false },
   { to: '/dashboard/voice', label: 'Receptionist', icon: PhoneCall, end: false },
+  { to: '/dashboard/checklist', label: 'Checklist', icon: ListChecks, end: false },
 ];
 
 export default function DashboardLayout() {

@@ -9,28 +9,6 @@ import {
   type Product, type WebsiteInputs, type SavedWebsite, type SiteFiles,
 } from '../website';
 
-const TEMPLATES = [
-  { name: 'Cafe', bg: 'pink' },
-  { name: 'Restaurant', bg: 'black' },
-  { name: 'Portfolio', bg: 'white' },
-  { name: 'Agency', bg: '#f3f4f6' },
-  { name: 'E-commerce', bg: '#e0f2fe' },
-  { name: 'Blog', bg: '#fef3c7' },
-  { name: 'Startup', bg: '#dcfce7' },
-  { name: 'Photography', bg: '#111827' },
-  { name: 'Consulting', bg: '#f8fafc' },
-  { name: 'Fitness', bg: '#ffe4e6' },
-  { name: 'Salon', bg: '#fce7f3' },
-  { name: 'Real Estate', bg: '#f1f5f9' },
-  { name: 'Education', bg: '#eff6ff' },
-  { name: 'Non-profit', bg: '#f0fdf4' },
-  { name: 'Event', bg: '#faf5ff' },
-  { name: 'Music', bg: '#18181b' },
-  { name: 'Medical', bg: '#f0f9ff' },
-  { name: 'Legal', bg: '#f8fafc' },
-  { name: 'Construction', bg: '#fff7ed' },
-  { name: 'SaaS', bg: '#f8fafc' },
-];
 
 const TONES = ['Clean & modern', 'Warm & cozy', 'Bold & vibrant', 'Elegant & minimal', 'Playful', 'Luxury'];
 const QUICK_FIXES = [
@@ -627,20 +605,21 @@ export default function Website() {
                 <X className="w-5 h-5 text-neutral-500 dark:text-neutral-400" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex-1 bg-black/[0.02] dark:bg-white/[0.02]">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {TEMPLATES.map((t, i) => (
-                  <div key={i} className="group relative rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-white dark:bg-neutral-800 hover:shadow-xl transition-all hover:-translate-y-1">
-                    <div className="aspect-[4/3] w-full relative overflow-hidden bg-neutral-100 dark:bg-neutral-900">
-                      <iframe src={`/templates/template-${i + 1}.html`} className="absolute top-0 left-0 w-[200%] h-[200%] origin-top-left scale-50 pointer-events-none opacity-80 group-hover:opacity-100 transition-opacity bg-white" />
-                    </div>
-                    <div className="p-4 border-t border-black/10 dark:border-white/10 flex items-center justify-between">
-                      <span className="font-semibold text-sm text-neutral-800 dark:text-neutral-200">{t.name}</span>
-                      <button onClick={() => setShowTemplatesModal(false)} className="text-xs font-semibold bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors">Select</button>
-                    </div>
-                  </div>
-                ))}
+            <div className="p-12 overflow-y-auto flex-1 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-5">
+                <LayoutTemplate className="w-8 h-8 text-blue-500" />
               </div>
+              <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Actual templates coming soon</h3>
+              <p className="text-sm text-neutral-500 dark:text-white/50 max-w-sm mb-6">
+                Hand-built starter templates are on the way. For now, just describe your business and let Kernel
+                generate a custom website for you.
+              </p>
+              <button
+                onClick={() => setShowTemplatesModal(false)}
+                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors"
+              >
+                Generate one instead
+              </button>
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ import Settings from './pages/Settings';
 import Marketing from './pages/Marketing';
 import Website from './pages/Website';
 import Voice from './pages/Voice';
+import Checklist from './pages/Checklist';
 import Onboarding from './pages/Onboarding';
 import Checkout from './pages/Checkout';
 import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from 'motion/react';
@@ -724,6 +725,7 @@ export default function App() {
           <Route path="marketing" element={<Marketing />} />
           <Route path="website" element={<Website />} />
           <Route path="voice" element={<Voice />} />
+          <Route path="checklist" element={<Checklist />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

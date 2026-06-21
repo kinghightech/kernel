@@ -11,11 +11,42 @@ export default function AIChat() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [bizContext, setBizContext] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, loading, streamingMessage]);
+
+  // Load the user's business profile + catalog once, so the AI has real context.
+  useEffect(() => {
+    (async () => {
+      const [{ data: ob }, { data: products }] = await Promise.all([
+        supabase.from('onboarding').select('*').maybeSingle(),
+        supabase.from('products').select('name, price, description'),
+      ]);
+      if (!ob) return;
+      const menu = (products ?? [])
+        .map((p) => `- ${p.name}${p.price ? ` (${p.price})` : ''}${p.description ? `: ${p.description}` : ''}`)
+        .join('\n');
+      const facts = [
+        ob.business_name && `Business name: ${ob.business_name}`,
+        ob.business_type && `Type: ${ob.business_type}`,
+        ob.address && `Location: ${ob.address}`,
+        ob.revenue && `Average daily revenue: $${ob.revenue}`,
+        ob.profit_margin && `Profit margin: ${ob.profit_margin}%`,
+        ob.business_model && `Business model: ${ob.business_model}`,
+        ob.peak_traffic && `Peak traffic: ${ob.peak_traffic}`,
+        ob.customer_source && `Customers come from: ${ob.customer_source}`,
+        ob.promotion_style && `Promotion style: ${ob.promotion_style}`,
+      ].filter(Boolean).join('\n');
+      setBizContext(
+        `You are Kernel AI, a practical business assistant. You are helping the owner of this specific business:\n${facts}` +
+        (menu ? `\n\nProducts / menu:\n${menu}` : '') +
+        `\n\nUse these real details to give specific, relevant advice for their business. Keep answers concise and actionable.`
+      );
+    })();
+  }, []);
 
   const sendMessage = async () => {
     const trimmed = input.trim();
@@ -39,7 +70,9 @@ export default function AIChat() {
           Authorization: `Bearer ${token}`,
           apikey: supabaseAnonKey,
         },
-        body: JSON.stringify({ messages: nextMessages }),
+        body: JSON.stringify({
+          messages: bizContext ? [{ role: 'system', content: bizContext }, ...nextMessages] : nextMessages,
+        }),
       });
 
       if (!res.ok || !res.body) {

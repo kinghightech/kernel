@@ -47,13 +47,11 @@ export default function PricingSection({
         <div className="c3-card">
           <div className="c3-tier-small">Free</div>
           <div className="c3-tier-large">Free</div>
-          <div className="c3-desc">For creators taking their first steps with Kernel.</div>
+          <div className="c3-desc">Get started and keep your day organized.</div>
           <ul className="c3-list">
-            <li><Check />Up to 3 projects in the cloud</li>
-            <li><Check />Image export up to 1080p</li>
-            <li><Check />Basic editing tools</li>
-            <li><Check />Free templates and icons</li>
-            <li><Check />Access via web and mobile app</li>
+            <li><Check />Daily checklists &amp; to-do list</li>
+            <li><Check />Business dashboard home</li>
+            <li><Check />Access via web</li>
           </ul>
           <button className="c3-btn" onClick={() => onChoose('free', interval)}>Choose Plan</button>
         </div>
@@ -86,23 +84,14 @@ export default function PricingSection({
               </span>
             )}
           </div>
-          <div
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-              fontSize: '0.78rem', fontWeight: 600, color: '#9ab4ff',
-              border: '1px solid rgba(154,180,255,0.35)', borderRadius: 999,
-              padding: '5px 12px', marginTop: 14,
-            }}
-          >
-            ✦ Free 3-day trial — try for 3 days for $0
-          </div>
-          <div className="c3-desc">For freelancers and small teams who need more freedom and flexibility.</div>
+          <div className="c3-desc">Everything a local business needs to grow.</div>
           <ul className="c3-list">
-            <li><Check />Up to 50 projects in the cloud</li>
-            <li><Check />Export up to 4K</li>
-            <li><Check />Advanced editing toolkit</li>
-            <li><Check />Team collaboration (up to 5 members)</li>
-            <li><Check />Access to premium template library</li>
+            <li><Check />3 website generations</li>
+            <li><Check />Today's outlook — weather &amp; green/red days</li>
+            <li><Check />Connect Square for live sales &amp; top sellers</li>
+            <li><Check />Upcoming local events</li>
+            <li><Check />Limited AI chat</li>
+            <li><Check />Everything in Free</li>
           </ul>
           <button className="c3-btn" onClick={() => onChoose('pro', interval)}>Choose Plan</button>
         </div>
@@ -110,13 +99,13 @@ export default function PricingSection({
         <div className="c3-card c3-card-pro">
           <div className="c3-tier-small">Max</div>
           <div className="c3-tier-large">{yearly ? '$199.99/y' : '$19.99/m'}</div>
-          <div className="c3-desc">For studios, agencies, and professional creators working with brands.</div>
+          <div className="c3-desc">The full suite — unlimited, with your own AI receptionist.</div>
           <ul className="c3-list">
-            <li><Check />Unlimited projects</li>
-            <li><Check />Export up to 8K + animations</li>
-            <li><Check />AI-powered content generation tools</li>
-            <li><Check />Unlimited team members</li>
-            <li><Check />Brand customization</li>
+            <li><Check />Unlimited website generations &amp; improvements</li>
+            <li><Check />Unlimited AI chat</li>
+            <li><Check />AI marketing — real social campaign content</li>
+            <li><Check />Your own AI receptionist for missed calls</li>
+            <li><Check />Everything in Pro</li>
           </ul>
           <button className="c3-btn" onClick={() => onChoose('max', interval)}>Choose Plan</button>
         </div>
