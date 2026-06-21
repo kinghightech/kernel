@@ -31,6 +31,7 @@ export default function Voice() {
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -90,6 +91,15 @@ export default function Voice() {
     setTimeout(() => setCopied(false), 1500);
   };
 
+  // Carrier "forward on no answer" code, e.g. *61*15082045839#
+  const forwardCode = agent.phone_number ? `*61*${agent.phone_number.replace(/\D/g, '')}#` : '';
+  const copyCode = () => {
+    if (!forwardCode) return;
+    navigator.clipboard.writeText(forwardCode);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 1500);
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin text-neutral-400" /></div>;
   }
@@ -143,10 +153,20 @@ export default function Voice() {
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
-            <p className="text-sm text-neutral-600 dark:text-white/60 mt-3 leading-relaxed">
-              <span className="font-semibold text-neutral-800 dark:text-white/80">One-time setup:</span> on your business phone, turn on
-              call forwarding for <span className="font-semibold">“no answer”</span> and <span className="font-semibold">“busy”</span>,
-              and point it to the number above. Now any call you don't pick up is answered by your AI.
+            <p className="text-sm text-neutral-600 dark:text-white/60 mt-4 leading-relaxed">
+              <span className="font-semibold text-neutral-800 dark:text-white/80">One-time setup:</span> on your business
+              phone, open the dialer, type the code below, and press call. From then on, any call you don't answer
+              rings to your AI automatically.
+            </p>
+            <div className="mt-3 flex items-center gap-3 rounded-xl bg-black/[0.05] dark:bg-white/[0.07] border border-black/10 dark:border-white/10 px-4 py-3">
+              <Phone className="w-4 h-4 text-blue-500 shrink-0" />
+              <code className="text-lg font-bold tracking-wider">{forwardCode}</code>
+              <button onClick={copyCode} className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:opacity-80">
+                {codeCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {codeCopied ? 'Copied' : 'Copy code'}
+              </button>
+            </div>
+            <p className="text-xs text-neutral-400 dark:text-white/40 mt-2">
+              Works on most U.S. carriers. To turn it off later, dial <code className="font-semibold">##61#</code>.
             </p>
           </div>
         )}
