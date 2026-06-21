@@ -20,6 +20,13 @@ const PLANS: Record<string, { name: string; monthly: number; yearly: number }> =
   max: { name: 'Kernel Max', monthly: 1999, yearly: 19999 },
 }
 
+// Your real, live Stripe prices (these IDs are NOT secret). Checkout uses these
+// so every purchase is tied to the actual Kernel Pro / Kernel Max products.
+const DEFAULT_PRICE_IDS: Record<string, string> = {
+  pro_month: 'price_1TjskfErldH8cPtfRRKYtvIO', // Kernel Pro — $9.99/mo
+  max_month: 'price_1TjseZErldH8cPtft4FqEWqq', // Kernel Max — $19.99/mo
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -77,7 +84,7 @@ Deno.serve(async (req) => {
     // (e.g. your live Kernel Pro / Kernel Max products). Otherwise define the
     // price inline, which works in both Test and Live with no setup.
     const priceEnvKey = `STRIPE_PRICE_${plan.toUpperCase()}_${billing.toUpperCase()}`
-    const configuredPriceId = Deno.env.get(priceEnvKey)
+    const configuredPriceId = Deno.env.get(priceEnvKey) ?? DEFAULT_PRICE_IDS[`${plan}_${billing}`]
     const lineItem = configuredPriceId
       ? { price: configuredPriceId, quantity: 1 }
       : {
@@ -98,9 +105,6 @@ Deno.serve(async (req) => {
       metadata: { user_id: user.id, plan, interval: billing },
       subscription_data: {
         metadata: { user_id: user.id, plan, interval: billing },
-        // 3-day free trial on the Pro plan only. Card is collected now;
-        // the first charge happens after the trial ends.
-        ...(plan === 'pro' ? { trial_period_days: 3 } : {}),
       },
       success_url: `${origin}/checkout?status=success`,
       cancel_url: `${origin}/checkout?status=cancelled`,

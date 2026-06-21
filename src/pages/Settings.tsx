@@ -36,8 +36,6 @@ export default function Settings() {
     return flag === 'connected' || flag === 'error' ? flag : null;
   });
 
-  const isTrial = status === 'trialing';
-
   const handleManage = async () => {
     setOpening(true);
     await openBillingPortal();
@@ -289,15 +287,11 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <span className="text-neutral-500 dark:text-white/50 text-sm">Status</span>
                 <span className="text-sm">
-                  {isTrial ? (
-                    <span className="px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-600 dark:bg-[#00d2ff]/10 dark:border-[#00d2ff]/30 dark:text-[#A4F4FD] text-xs">Free trial</span>
-                  ) : (
-                    <span className="capitalize">{status ?? '—'}</span>
-                  )}
+                  <span className="capitalize">{status ?? '—'}</span>
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-neutral-500 dark:text-white/50 text-sm">{isTrial ? 'Trial ends' : 'Renews on'}</span>
+                <span className="text-neutral-500 dark:text-white/50 text-sm">Renews on</span>
                 <span className="text-sm">{formatDate(currentPeriodEnd)}</span>
               </div>
 

@@ -24,7 +24,7 @@ const navItems = [
 
 export default function DashboardLayout() {
   const navigate = useNavigate();
-  const { loading, user, isActive, status, currentPeriodEnd, refresh } = useSubscription();
+  const { loading, user, isActive, refresh } = useSubscription();
   const [searchParams] = useSearchParams();
   const justPaid = searchParams.get('checkout') === 'success';
 
@@ -83,11 +83,6 @@ export default function DashboardLayout() {
     navigate('/');
   };
 
-  const trialDaysLeft =
-    status === 'trialing' && currentPeriodEnd
-      ? Math.max(0, Math.ceil((new Date(currentPeriodEnd).getTime() - Date.now()) / 86_400_000))
-      : null;
-
   if (loading || obLoading || waitingForWebhook) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white gap-4">
@@ -140,11 +135,6 @@ export default function DashboardLayout() {
             <Settings className="w-4 h-4 text-neutral-400 dark:text-white/60 shrink-0" />
             <div className="min-w-0">
               <div className="text-sm font-medium text-neutral-900 dark:text-white truncate">{user.email}</div>
-              {trialDaysLeft !== null && (
-                <div className="text-xs text-blue-600 dark:text-[#A4F4FD]">
-                  Your trial ends in {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'}
-                </div>
-              )}
             </div>
           </button>
 

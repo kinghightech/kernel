@@ -29,7 +29,7 @@ const GoogleIcon = ({ className = 'w-5 h-5' }: { className?: string }) => (
   </svg>
 );
 
-const PrimaryButton = ({ label = 'Launch your growth', full }: { label?: string, full?: boolean }) => {
+const PrimaryButton = ({ label = 'Get started', full }: { label?: string, full?: boolean }) => {
   const navigate = useNavigate();
 
   // Normalized cursor position within the button (-0.5 .. 0.5)
@@ -213,18 +213,18 @@ function FlowerScroll() {
           className="block h-[68vh] w-full max-w-[1600px] object-contain"
         />
         <motion.h2
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="-mt-[3vh] md:-mt-[5vh] text-center text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight"
+          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-[2vh] md:mt-[4vh] text-center text-4xl sm:text-6xl md:text-8xl font-bold tracking-tight"
         >
           Get ready for your business to{' '}
           <motion.span
             className="animate-shiny inline-block"
             style={bloomGradient}
-            animate={{ scale: [1, 1.08, 1] }}
-            transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
           >
             bloom
           </motion.span>
@@ -278,7 +278,7 @@ function Landing() {
             <LogoMark />
           </div>
           <div className="hidden md:flex gap-8">
-            {['Solutions', 'Pricing', 'Blog', 'Documentation', 'Careers'].map((link, i) => (
+            {['Features', 'Pricing', 'About', 'Support'].map((link, i) => (
               <motion.a 
                 key={link}
                 href="#"
@@ -313,7 +313,8 @@ function Landing() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
             className="text-6xl md:text-8xl lg:text-[7.5rem] font-bold tracking-tight leading-[0.9]"
           >
-            <div className="text-white mb-2">Your email.</div>
+            <div className="text-white mb-2">The second brain</div>
+            <div className="text-white mb-2">for your business.</div>
             <div className="animate-shiny inline-block" style={gradientStyle}>Kernel</div>
           </motion.h1>
 
@@ -323,7 +324,7 @@ function Landing() {
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.5 }}
             className="mt-8 text-white/60 max-w-lg text-lg md:text-xl leading-[1.6]"
           >
-            Kernel is the premier inbox platform for the current era. It leverages powerful AI to organize, prioritize, and refine your messages into total clarity.
+            Kernel is an AI-powered operations platform that thinks alongside you. Strategy, marketing, web presence, and daily insights — unified into one intelligent command center.
           </motion.p>
 
           <motion.div 
@@ -348,15 +349,15 @@ function Landing() {
               viewport={{ once: true }}
               transition={{ duration: 0.7 }}
             >
-              <SectionEyebrow label="Triage" tag="AI-native" />
+              <SectionEyebrow label="Operations" tag="AI-native" />
               <h2 className="mt-5 text-4xl md:text-6xl font-bold tracking-tight leading-[1.02]">
-                Clear your inbox <br/> in a single pass.
+                Every decision, <br/> one step ahead.
               </h2>
               <p className="mt-6 text-white/60 text-lg leading-[1.6] max-w-lg">
-                Kernel reads every message, understands intent, and routes the noise away from the signal. Focus on what moves your day forward — the rest handles itself.
+                Kernel synthesizes your revenue data, market signals, and daily operations into clear, actionable intelligence. Focus on growth — the rest orchestrates itself.
               </p>
               <div className="mt-8 flex flex-wrap gap-2">
-                {['Auto-categorize', 'Snooze for later', 'Silent newsletters', 'One-tap unsubscribe'].map(chip => (
+                {['AI Strategy Chat', 'Campaign Generator', 'Website Builder', 'Live Sales Data'].map(chip => (
                   <span key={chip} className="text-xs text-white/70 px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03]">
                     {chip}
                   </span>
@@ -371,13 +372,13 @@ function Landing() {
               transition={{ duration: 0.7, delay: 0.2 }}
               className="liquid-glass rounded-2xl p-5"
             >
-              <div className="text-xs font-medium text-white/60 mb-4 px-1">Today · 42 messages triaged</div>
+              <div className="text-xs font-medium text-white/60 mb-4 px-1">Today · Your business at a glance</div>
               <div className="space-y-3">
                 {[
-                  { title: 'Priority (4)', color: '#ffffff', items: ['Sophia Chen — Q3 review', 'David Lim — contract signoff'] },
-                  { title: 'Follow-up (7)', color: '#e5e5e5', items: ['Marcus — design review', 'Figma — comment thread'] },
-                  { title: 'Updates (18)', color: '#a3a3a3', items: ['Vercel — deploy ready', 'GitHub — PR #482 merged'] },
-                  { title: 'Archived (13)', color: '#525252', items: ['Stripe payout · Newsletter · Receipts'] },
+                  { title: 'Revenue Today', color: '#ffffff', items: ['$4,280 across 38 orders', 'Top seller: Signature Blend — 14 units'] },
+                  { title: 'Marketing (3 active)', color: '#e5e5e5', items: ['Summer launch campaign — 2.4k reach', 'New product reel — scheduled 3pm'] },
+                  { title: 'Website', color: '#a3a3a3', items: ['Last updated 2 hrs ago', '312 visits today · 4.2% conversion'] },
+                  { title: 'AI Insight', color: '#525252', items: ['Revenue up 18% vs last Tuesday — consider restocking'] },
                 ].map(group => (
                   <div key={group.title} className="liquid-glass rounded-lg p-3">
                     <div className="text-xs font-semibold mb-2" style={{ color: group.color }}>{group.title}</div>
@@ -393,34 +394,15 @@ function Landing() {
           </div>
         </section>
 
-        {/* Section 6 — LogoCloud */}
-        <section className="w-full px-6 md:px-12 py-16 md:py-20">
-          <div className="text-center text-xs uppercase tracking-widest text-white/40">
-            Trusted by the world's most thoughtful teams
-          </div>
-          <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-6">
-            {['Linear', 'Vercel', 'Figma', 'Stripe', 'Ramp', 'Notion', 'Loom', 'Arc'].map((logo, i) => (
-              <motion.div 
-                key={logo}
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="flex items-center justify-center"
-              >
-                <span className="text-sm font-semibold tracking-tight text-white/50 hover:text-white transition-colors cursor-pointer">{logo}</span>
-              </motion.div>
-            ))}
-          </div>
-        </section>
+
 
         {/* Section 7 — Testimonials */}
         <section className="w-full px-6 md:px-12 py-20 md:py-28 border-t border-white/10">
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { quote: "Kernel gave our leadership team four hours of their week back. It reads like email from the future.", name: "Parker Wilf", role: "Group Product Manager", company: "MERCURY" },
-              { quote: "The command palette alone has changed how I process messages. I can't imagine going back to a traditional client.", name: "Andrew von Rosenbach", role: "Senior Engineering Program Manager", company: "COHERE" },
-              { quote: "Triage that actually understands context. Our team stopped dreading Monday morning inboxes.", name: "Mathies Christensen", role: "Engineering Manager", company: "LUNAR" }
+              { quote: "Kernel replaced three separate tools for us. The AI insights alone have shifted how we plan every week.", name: "Rachel Nguyen", role: "Chief Operating Officer", company: "VEDA STUDIO" },
+              { quote: "We launched a full website and our first marketing campaign in the same afternoon. That used to take us weeks.", name: "James Okafor", role: "Founder & CEO", company: "EMBER SUPPLY" },
+              { quote: "The Square integration is magic. Seeing real-time revenue next to AI strategy recommendations changed our whole rhythm.", name: "Sofia Marchetti", role: "Head of Growth", company: "CALIBER CO" }
             ].map((testimonial, i) => (
               <motion.div 
                 key={i}
@@ -455,10 +437,10 @@ function Landing() {
           >
             <div className="absolute inset-0 pointer-events-none opacity-30" style={{ background: 'radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.15), transparent 70%)' }} />
             <h2 className="relative z-10 text-5xl md:text-7xl font-bold tracking-tight leading-[1.02]">
-              Close the tabs. <br/> Open your day.
+              Stop managing. <br/> Start building.
             </h2>
             <p className="relative z-10 mt-6 text-white/60 max-w-lg mx-auto text-base md:text-lg leading-[1.6]">
-              Join thousands of builders, founders, and operators who treat email like a tool — not an obligation.
+              Join the founders and operators who run smarter with an AI-powered second brain behind every decision.
             </p>
             <div className="relative z-10 mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <PrimaryButton />

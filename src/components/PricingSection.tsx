@@ -21,7 +21,7 @@ export default function PricingSection({
   watermark?: { line1: string; line2: string };
 }) {
   const interval: Interval = 'month';
-  const wm = watermark ?? { line1: 'Your email.', line2: 'Kernel' };
+  const wm = watermark ?? { line1: 'Your second brain.', line2: 'Kernel' };
 
   return (
     <section className="c3-pricing-section">
@@ -68,7 +68,7 @@ export default function PricingSection({
               <span>$9.99/m</span>
             </span>
           </div>
-          <div className="c3-desc">Everything a local business needs to grow.</div>
+          <div className="c3-desc">Everything your business needs to move faster.</div>
           <ul className="c3-list">
             <li><Check />3 website generations</li>
             <li><Check />Today's outlook — weather &amp; green/red days</li>
@@ -82,7 +82,7 @@ export default function PricingSection({
         <div className="c3-card c3-card-pro">
           <div className="c3-tier-small">Max</div>
           <div className="c3-tier-large">$19.99/m</div>
-          <div className="c3-desc">The full suite — unlimited, with your own AI receptionist.</div>
+          <div className="c3-desc">The full suite — unlimited power, with your own AI receptionist.</div>
           <ul className="c3-list">
             <li><Check />Unlimited website generations &amp; improvements</li>
             <li><Check />Unlimited AI chat</li>
