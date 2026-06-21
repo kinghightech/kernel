@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type { Plan, Interval } from '../billing';
 
 export type PlanChoice = Plan;
@@ -21,8 +20,7 @@ export default function PricingSection({
   onChoose: (plan: PlanChoice, interval: Interval) => void;
   watermark?: { line1: string; line2: string };
 }) {
-  const [yearly, setYearly] = useState(false);
-  const interval: Interval = yearly ? 'year' : 'month';
+  const interval: Interval = 'month';
   const wm = watermark ?? { line1: 'Your email.', line2: 'Kernel' };
 
   return (
@@ -65,12 +63,10 @@ export default function PricingSection({
           </div>
           <div className="c3-tier-small">Pro</div>
           <div className="c3-tier-large" style={{ whiteSpace: 'nowrap' }}>
-            {yearly ? '$99.99/y' : (
-              <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
-                <span style={{ textDecoration: 'line-through', opacity: 0.4, fontWeight: 400, fontSize: '0.9rem' }}>$15.99</span>
-                <span>$9.99/m</span>
-              </span>
-            )}
+            <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.1 }}>
+              <span style={{ textDecoration: 'line-through', opacity: 0.4, fontWeight: 400, fontSize: '0.9rem' }}>$15.99</span>
+              <span>$9.99/m</span>
+            </span>
           </div>
           <div className="c3-desc">Everything a local business needs to grow.</div>
           <ul className="c3-list">
@@ -79,14 +75,13 @@ export default function PricingSection({
             <li><Check />Connect Square for live sales &amp; top sellers</li>
             <li><Check />Upcoming local events</li>
             <li><Check />Limited AI chat</li>
-            <li><Check />Everything in Free</li>
           </ul>
           <button className="c3-btn" onClick={() => onChoose('pro', interval)}>Choose Plan</button>
         </div>
 
         <div className="c3-card c3-card-pro">
           <div className="c3-tier-small">Max</div>
-          <div className="c3-tier-large">{yearly ? '$199.99/y' : '$19.99/m'}</div>
+          <div className="c3-tier-large">$19.99/m</div>
           <div className="c3-desc">The full suite — unlimited, with your own AI receptionist.</div>
           <ul className="c3-list">
             <li><Check />Unlimited website generations &amp; improvements</li>
@@ -97,17 +92,6 @@ export default function PricingSection({
           </ul>
           <button className="c3-btn" onClick={() => onChoose('max', interval)}>Choose Plan</button>
         </div>
-      </div>
-
-      <div className="c3-toggle-wrap">
-        <span className="text-sm font-medium text-white/80">Yearly</span>
-        <button
-          className={`c3-toggle ${yearly ? 'active' : ''}`}
-          onClick={() => setYearly(!yearly)}
-          aria-label="Toggle yearly pricing"
-        >
-          <div className="c3-toggle-knob" />
-        </button>
       </div>
     </section>
   );
