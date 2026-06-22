@@ -118,121 +118,6 @@ const SectionEyebrow = ({ label, tag }: { label: string; tag?: string }) => (
   </div>
 );
 
-// Scroll-driven flower frame sequence. As the user scrolls through the tall
-// container, the "video" plays forward; scrolling back up rewinds it. The
-// frames are pre-keyed transparent WebP (black background removed, watermark
-// stripped — see scripts/key_flower.py), so the flower composites cleanly over
-// the page with no backing rectangle.
-const FLOWER_FRAME_COUNT = 240;
-const flowerFrameUrl = (i: number) =>
-  `/flower_t/frame-${String(i).padStart(3, '0')}.webp`;
-
-function FlowerScroll() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const [ready, setReady] = useState(false);
-
-  // Draw a single frame (1-based index) plus the watermark cover box.
-  const drawFrame = (index: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const img = imagesRef.current[index - 1];
-    if (!img || !img.complete || img.naturalWidth === 0) return;
-
-    // Transparent frames: clear first so the previous silhouette doesn't linger.
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  };
-
-  // Preload every frame so scrubbing is instant.
-  useEffect(() => {
-    const imgs: HTMLImageElement[] = [];
-    let loaded = 0;
-    for (let i = 1; i <= FLOWER_FRAME_COUNT; i++) {
-      const img = new Image();
-      img.src = flowerFrameUrl(i);
-      img.onload = () => {
-        loaded += 1;
-        if (i === 1) drawFrame(1); // paint the first frame ASAP
-        if (loaded === FLOWER_FRAME_COUNT) setReady(true);
-      };
-      imgs.push(img);
-    }
-    imagesRef.current = imgs;
-  }, []);
-
-  // Map scroll progress through the container to a frame index.
-  useEffect(() => {
-    let rafId = 0;
-    const onScroll = () => {
-      const el = containerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const scrollable = el.offsetHeight - window.innerHeight;
-      const progress = scrollable > 0 ? -rect.top / scrollable : 0;
-      const clamped = Math.min(Math.max(progress, 0), 1);
-      const frame = Math.min(
-        FLOWER_FRAME_COUNT,
-        Math.max(1, Math.round(clamped * (FLOWER_FRAME_COUNT - 1)) + 1)
-      );
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => drawFrame(frame));
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    onScroll();
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      cancelAnimationFrame(rafId);
-    };
-  }, [ready]);
-
-  // Iridescent gradient for the animated "bloom" word — echoes the flower's
-  // blue/pink. `animate-shiny` flows the gradient; the motion scale makes it breathe.
-  const bloomGradient: React.CSSProperties = {
-    backgroundImage:
-      'linear-gradient(to right, #A4F4FD 0%, #00d2ff 25%, #c08cff 50%, #00d2ff 75%, #A4F4FD 100%)',
-    backgroundSize: '200% auto',
-    WebkitBackgroundClip: 'text',
-    backgroundClip: 'text',
-    color: 'transparent',
-    WebkitTextFillColor: 'transparent',
-  };
-
-  return (
-    <div ref={containerRef} className="relative h-[300vh]">
-      <div className="sticky top-0 flex h-screen flex-col items-center justify-center">
-        <canvas
-          ref={canvasRef}
-          width={1280}
-          height={720}
-          className="block h-[68vh] w-full max-w-[1600px] object-contain"
-        />
-        <motion.h2
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-[2vh] md:mt-[4vh] text-center text-4xl sm:text-6xl md:text-8xl font-bold tracking-tight"
-        >
-          Get ready for your business to{' '}
-          <motion.span
-            className="animate-shiny inline-block"
-            style={bloomGradient}
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            bloom
-          </motion.span>
-        </motion.h2>
-      </div>
-    </div>
-  );
-}
 
 function Landing() {
   const navigate = useNavigate();
@@ -337,8 +222,6 @@ function Landing() {
           </motion.div>
         </section>
 
-        {/* Section 3 & 4 — Scroll-driven flower sequence */}
-        <FlowerScroll />
 
         {/* Section 5 — FeatureTriage */}
         <section className="w-full px-6 md:px-12 py-20 md:py-28">
