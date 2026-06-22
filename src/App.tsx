@@ -396,32 +396,6 @@ function Landing() {
 
 
 
-        {/* Section 7 — Testimonials */}
-        <section className="w-full px-6 md:px-12 py-20 md:py-28 border-t border-white/10">
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { quote: "Kernel replaced three separate tools for us. The AI insights alone have shifted how we plan every week.", name: "Rachel Nguyen", role: "Chief Operating Officer", company: "VEDA STUDIO" },
-              { quote: "We launched a full website and our first marketing campaign in the same afternoon. That used to take us weeks.", name: "James Okafor", role: "Founder & CEO", company: "EMBER SUPPLY" },
-              { quote: "The Square integration is magic. Seeing real-time revenue next to AI strategy recommendations changed our whole rhythm.", name: "Sofia Marchetti", role: "Head of Growth", company: "CALIBER CO" }
-            ].map((testimonial, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-                className="liquid-glass rounded-2xl p-6 flex flex-col"
-              >
-                <blockquote className="text-sm text-white/80 leading-[1.6] flex-1">"{testimonial.quote}"</blockquote>
-                <figcaption className="mt-6 pt-5 border-t border-white/10">
-                  <div className="text-sm font-semibold">{testimonial.name}</div>
-                  <div className="text-xs text-white/50 mt-0.5">{testimonial.role}</div>
-                  <div className="text-xs text-white font-semibold tracking-wide uppercase mt-2">{testimonial.company}</div>
-                </figcaption>
-              </motion.div>
-            ))}
-          </div>
-        </section>
 
         {/* Section 8 — Pricing */}
         <PricingSection onChoose={(plan, intv) => startCheckout(plan, intv)} />
