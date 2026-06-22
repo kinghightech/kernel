@@ -8,6 +8,7 @@ import {
   generateWebsite, editWebsite, saveWebsite, loadWebsite, downloadSite,
   type Product, type WebsiteInputs, type SavedWebsite, type SiteFiles,
 } from '../website';
+import HelpHint from '../components/HelpHint';
 
 
 const TONES = ['Clean & modern', 'Warm & cozy', 'Bold & vibrant', 'Elegant & minimal', 'Playful', 'Luxury'];
@@ -29,7 +30,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors border ${
         active
-          ? 'bg-blue-600 border-blue-600 text-white'
+          ? 'bg-neutral-900 border-neutral-900 text-white dark:bg-white dark:border-white dark:text-black'
           : 'bg-black/[0.03] dark:bg-white/5 border-black/10 dark:border-white/10 text-neutral-600 dark:text-white/70 hover:border-black/30 dark:hover:border-white/30'
       }`}
     >
@@ -76,7 +77,7 @@ export default function Website() {
   const [hours, setHours] = useState('');
   const [discounts, setDiscounts] = useState('');
   const [tone, setTone] = useState('Clean & modern');
-  const [accentColor, setAccentColor] = useState('#2563eb');
+  const [accentColor, setAccentColor] = useState('#111111');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [extra, setExtra] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -123,7 +124,7 @@ export default function Website() {
         const i = site.inputs || ({} as WebsiteInputs);
         setAbout(i.about ?? ''); setPhone(i.phone ?? ''); setEmail(i.email ?? '');
         setHours(i.hours ?? ''); setDiscounts(i.discounts ?? '');
-        setTone(i.tone ?? 'Clean & modern'); setAccentColor(i.accentColor ?? '#2563eb');
+        setTone(i.tone ?? 'Clean & modern'); setAccentColor(i.accentColor ?? '#111111');
         setBackgroundColor(i.backgroundColor ?? '#ffffff');
         setExtra(i.extra ?? '');
         setFiles(site.files ?? (site.html ? { 'index.html': site.html } : null));
@@ -265,13 +266,13 @@ export default function Website() {
           <div className="ml-auto flex items-center gap-2">
             {/* device toggle */}
             <div className="hidden sm:flex items-center rounded-lg border border-black/10 dark:border-white/15 p-0.5">
-              <button onClick={() => setDevice('desktop')} className={`p-1.5 rounded-md ${device === 'desktop' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400'}`} title="Desktop"><Monitor className="w-4 h-4" /></button>
-              <button onClick={() => setDevice('mobile')} className={`p-1.5 rounded-md ${device === 'mobile' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400'}`} title="Mobile"><Smartphone className="w-4 h-4" /></button>
+              <button onClick={() => setDevice('desktop')} className={`p-1.5 rounded-md ${device === 'desktop' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400 dark:text-white/40'}`} title="Desktop"><Monitor className="w-4 h-4" /></button>
+              <button onClick={() => setDevice('mobile')} className={`p-1.5 rounded-md ${device === 'mobile' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400 dark:text-white/40'}`} title="Mobile"><Smartphone className="w-4 h-4" /></button>
             </div>
             {/* preview/code toggle */}
             <div className="flex items-center rounded-lg border border-black/10 dark:border-white/15 p-0.5">
-              <button onClick={() => setRightView('preview')} className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 ${rightView === 'preview' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400'}`}><Monitor className="w-3.5 h-3.5" /> Preview</button>
-              <button onClick={() => setRightView('code')} className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 ${rightView === 'code' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400'}`}><Code2 className="w-3.5 h-3.5" /> Code</button>
+              <button onClick={() => setRightView('preview')} className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 ${rightView === 'preview' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400 dark:text-white/40'}`}><Monitor className="w-3.5 h-3.5" /> Preview</button>
+              <button onClick={() => setRightView('code')} className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 ${rightView === 'code' ? 'bg-black/[0.06] dark:bg-white/10' : 'text-neutral-400 dark:text-white/40'}`}><Code2 className="w-3.5 h-3.5" /> Code</button>
             </div>
             <button
               onClick={openInTab}
@@ -292,7 +293,7 @@ export default function Website() {
             <button
               onClick={handleSave}
               disabled={!files || saving}
-              className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : justSaved ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
               {justSaved ? 'Saved' : 'Save'}
@@ -309,7 +310,7 @@ export default function Website() {
                 <div key={i} className={m.role === 'user' ? 'flex justify-end' : 'flex justify-start'}>
                   <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm whitespace-pre-wrap ${
                     m.role === 'user'
-                      ? 'bg-blue-600 text-white rounded-br-md'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-black rounded-br-md'
                       : 'bg-white dark:bg-white/10 border border-black/10 dark:border-white/10 rounded-bl-md'
                   }`}>
                     {m.content}
@@ -330,7 +331,7 @@ export default function Website() {
             {files && !busy && (
               <div className="px-3 pb-2 flex flex-wrap gap-1.5">
                 {QUICK_FIXES.map(q => (
-                  <button key={q} onClick={() => sendInstruction(q)} className="text-xs px-2.5 py-1.5 rounded-lg border border-black/10 dark:border-white/15 text-neutral-600 dark:text-white/60 hover:border-blue-500/50 hover:text-blue-600 transition-colors">
+                  <button key={q} onClick={() => sendInstruction(q)} className="text-xs px-2.5 py-1.5 rounded-lg border border-black/10 dark:border-white/15 text-neutral-600 dark:text-white/60 hover:border-black/30 dark:hover:border-white/30 hover:text-neutral-900 dark:hover:text-white transition-colors">
                     {q}
                   </button>
                 ))}
@@ -338,8 +339,8 @@ export default function Website() {
             )}
 
             {/* hosting note */}
-            <div className="mx-3 mb-2 flex items-start gap-2 rounded-lg bg-blue-500/10 border border-blue-500/20 px-3 py-2 text-[11px] leading-snug text-neutral-600 dark:text-white/60">
-              <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-blue-500" />
+            <div className="mx-3 mb-2 flex items-start gap-2 rounded-lg bg-black/[0.04] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 px-3 py-2 text-[11px] leading-snug text-neutral-600 dark:text-white/60">
+              <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-neutral-700 dark:text-white/70" />
               <span>This is a live preview. To put it on your real website, <b>download the files</b> — we’ll help you get it live on your domain.</span>
             </div>
 
@@ -358,7 +359,7 @@ export default function Website() {
                 <button
                   onClick={() => sendInstruction(chatInput)}
                   disabled={!files || busy || !chatInput.trim()}
-                  className="h-10 w-10 shrink-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-colors disabled:opacity-40"
+                  className="h-10 w-10 shrink-0 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black flex items-center justify-center hover:opacity-90 transition-opacity disabled:opacity-40"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -424,19 +425,7 @@ export default function Website() {
   // ============================ SETUP ============================
   return (
     <div className="relative h-full overflow-y-auto bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white">
-      <div className="absolute inset-0 pointer-events-none opacity-30 hidden dark:block" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
-
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-10">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0 shadow-lg shadow-blue-900/30">
-            <Globe className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Website Builder</h1>
-            <p className="text-neutral-500 dark:text-white/50 text-sm">Tell us about your business and AI builds your site — then refine it by chatting.</p>
-          </div>
-        </div>
-
         {savedSite && (
           <button
             onClick={() => {
@@ -445,9 +434,9 @@ export default function Website() {
               setMessages([{ role: 'assistant', content: 'Reopened your saved website. What would you like to change?' }]);
               setPhase('studio');
             }}
-            className={`${card} w-full text-left p-4 mt-6 flex items-center gap-3 hover:border-blue-500/50 transition-colors`}
+            className={`${card} w-full text-left p-4 mt-6 flex items-center gap-3 hover:border-black/30 dark:hover:border-white/30 transition-colors`}
           >
-            <Globe className="w-5 h-5 text-blue-600" />
+            <Globe className="w-5 h-5 text-neutral-700 dark:text-white/70" />
             <div className="flex-1">
               <div className="text-sm font-semibold">Open your current website</div>
               <div className="text-xs text-neutral-500 dark:text-white/40">Jump back into the editor</div>
@@ -577,7 +566,7 @@ export default function Website() {
         <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
           <button
             onClick={handleGenerate}
-            className="flex-1 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors shadow-lg shadow-blue-900/30"
+            className="flex-1 w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold hover:opacity-90 transition-opacity shadow-lg shadow-black/20"
           >
             <Wand2 className="w-5 h-5" /> {savedSite ? 'Rebuild website' : 'Generate website'}
           </button>
@@ -606,8 +595,8 @@ export default function Website() {
               </button>
             </div>
             <div className="p-12 overflow-y-auto flex-1 bg-black/[0.02] dark:bg-white/[0.02] flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-5">
-                <LayoutTemplate className="w-8 h-8 text-blue-500" />
+              <div className="w-16 h-16 rounded-2xl bg-black/5 dark:bg-white/10 flex items-center justify-center mb-5">
+                <LayoutTemplate className="w-8 h-8 text-neutral-700 dark:text-white/70" />
               </div>
               <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">Actual templates coming soon</h3>
               <p className="text-sm text-neutral-500 dark:text-white/50 max-w-sm mb-6">
@@ -616,7 +605,7 @@ export default function Website() {
               </p>
               <button
                 onClick={() => setShowTemplatesModal(false)}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors"
+                className="px-5 py-2.5 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold text-sm hover:opacity-90 transition-opacity"
               >
                 Generate one instead
               </button>
@@ -624,6 +613,8 @@ export default function Website() {
           </div>
         </div>
       )}
+
+      <HelpHint text="Describe your business in plain language and Kernel builds a complete, multi-page website — refine it by chatting, then download the files when you're ready to go live." />
     </div>
   );
 }

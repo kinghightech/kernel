@@ -48,7 +48,14 @@ function dayHours(hours: Record<string, { open: string; close: string }[]>, key:
 }
 
 // Build the variables the agent's prompt reads from.
-function buildVariables(business: any, products: any[]) {
+type AgentBusiness = {
+  hours?: Record<string, { open: string; close: string }[]>
+  business_name?: string
+  business_type?: string
+  address?: string
+}
+type AgentProduct = { name?: string; price?: string | number; description?: string }
+function buildVariables(business: AgentBusiness, products: AgentProduct[]) {
   const hours = (business.hours ?? {}) as Record<string, { open: string; close: string }[]>
   const now = new Date()
   const todayKey = DAYS[now.getDay()]
@@ -76,7 +83,7 @@ function buildVariables(business: any, products: any[]) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
-  let body: any
+  let body: Record<string, unknown>
   try {
     body = await req.json()
   } catch {

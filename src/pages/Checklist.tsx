@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ListChecks, Plus, Trash2, Check, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Check, Loader2 } from 'lucide-react';
 import {
   loadTodos, addTodo, toggleTodo, deleteTodo, todayStr, type Todo,
 } from '../todos';
+import HelpHint from '../components/HelpHint';
 
 const card = 'rounded-2xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]';
 
@@ -62,17 +63,7 @@ export default function Checklist() {
 
   return (
     <div className="relative h-full overflow-y-auto bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white">
-      <div className="absolute inset-0 pointer-events-none opacity-30 hidden dark:block" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
-
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-12">
-        <div className="flex items-center gap-2.5 mb-1">
-          <ListChecks className="w-6 h-6 text-blue-500" />
-          <h1 className="text-2xl font-bold tracking-tight">Checklist</h1>
-        </div>
-        <p className="text-sm text-neutral-500 dark:text-white/50 mb-8">
-          Add tasks for any day — each one shows up in "Today's to-do" on your home page when its day arrives.
-        </p>
-
         {/* Add task */}
         <form onSubmit={handleAdd} className={`${card} p-4 flex flex-col sm:flex-row gap-3 mb-8`}>
           <input
@@ -126,6 +117,8 @@ export default function Checklist() {
           </div>
         )}
       </div>
+
+      <HelpHint text="Your business checklist. Add tasks for any day — each one appears in “Today's to-do” on your home dashboard when its date arrives." />
     </div>
   );
 }

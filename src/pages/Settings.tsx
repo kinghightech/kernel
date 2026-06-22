@@ -88,8 +88,6 @@ export default function Settings() {
 
   return (
     <div className="relative h-full overflow-y-auto bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white">
-      <div className="absolute inset-0 pointer-events-none opacity-20 hidden dark:block" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
-
       <div className="relative z-10 max-w-2xl mx-auto px-6 py-12">
         <button onClick={() => navigate('/dashboard')} className="text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white transition-colors text-sm flex items-center gap-2 mb-8">
           <ChevronRight className="w-4 h-4 rotate-180" /> Back to dashboard
@@ -110,7 +108,7 @@ export default function Settings() {
                   onClick={() => changeTheme(id)}
                   className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     theme === id
-                      ? 'bg-black/[0.06] text-neutral-900 dark:bg-white/15 dark:text-white'
+                      ? 'bg-black/[0.06] text-neutral-900 dark:bg-white/10 dark:text-white'
                       : 'text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white'
                   }`}
                 >
@@ -164,7 +162,7 @@ export default function Settings() {
           <h2 className="text-sm font-semibold text-neutral-500 dark:text-white/70 mb-4">Integrations</h2>
 
           {banner === 'connected' && (
-            <div className="mb-4 flex items-center gap-2 rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm text-green-700 dark:text-green-300">
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-700 dark:text-emerald-300">
               <Check className="w-4 h-4 shrink-0" /> Square connected successfully.
             </div>
           )}

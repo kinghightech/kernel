@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate, useSearchParams, Navigate } from 'react-router-dom';
-import { Home, Sparkles, LogOut, Settings, Megaphone, Globe, PhoneCall, ListChecks } from 'lucide-react';
+import { Home, Brain, LogOut, Settings, Megaphone, Globe, PhoneCall, ListChecks } from 'lucide-react';
 import { supabase } from '../supabase';
 import { useSubscription } from '../billing';
 import { flushPendingOnboarding } from '../onboarding';
 import { applyTheme, type Theme } from '../theme';
 import PayWall from './PayWall';
 
+// Matches the landing-page logo exactly: the white flower mark (public/logo.png).
+// Inverted to black in light mode so it stays visible on the light sidebar.
 const LogoMark = ({ className = 'w-8 h-8' }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 256 256" fill="currentColor">
-    <path d="M 0 128 C 70.692 128 128 185.308 128 256 L 64 256 C 64 220.654 35.346 192 0 192 Z M 256 192 C 220.654 192 192 220.654 192 256 L 128 256 C 128 185.308 185.308 128 256 128 Z M 128 0 C 128 70.692 70.692 128 0 128 L 0 64 C 35.346 64 64 35.346 64 0 Z M 192 0 C 192 35.346 220.654 64 256 64 L 256 128 C 185.308 128 128 70.692 128 0 Z" />
-  </svg>
+  <img src="/logo.png" alt="Kernel" className={`${className} object-contain invert dark:invert-0`} />
 );
 
 const navItems = [
   { to: '/dashboard', label: 'Home', icon: Home, end: true },
-  { to: '/dashboard/ai', label: 'AI', icon: Sparkles, end: false },
+  { to: '/dashboard/ai', label: 'AI', icon: Brain, end: false },
   { to: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, end: false },
   { to: '/dashboard/website', label: 'Website', icon: Globe, end: false },
   { to: '/dashboard/voice', label: 'Receptionist', icon: PhoneCall, end: false },
@@ -28,23 +28,23 @@ export default function DashboardLayout() {
   const [searchParams] = useSearchParams();
   const justPaid = searchParams.get('checkout') === 'success';
 
-  const [waitingForWebhook, setWaitingForWebhook] = useState(justPaid);
+  // `waitingForWebhook` is derived, not stored, so the effect never calls setState
+  // synchronously. We only persist the "gave up after N polls" flag.
+  const [gaveUp, setGaveUp] = useState(false);
+  const waitingForWebhook = justPaid && !isActive && !gaveUp;
   useEffect(() => {
-    if (!justPaid || isActive) {
-      setWaitingForWebhook(false);
-      return;
-    }
+    if (!waitingForWebhook) return;
     let tries = 0;
     const id = setInterval(async () => {
       tries += 1;
       await refresh();
       if (tries >= 8) {
         clearInterval(id);
-        setWaitingForWebhook(false);
+        setGaveUp(true);
       }
     }, 2000);
     return () => clearInterval(id);
-  }, [justPaid, isActive, refresh]);
+  }, [waitingForWebhook, refresh]);
 
   // Check onboarding completion and flush staged answers. We remember the saved
   // theme but only apply it once the user is a paying member on the real
@@ -121,7 +121,7 @@ export default function DashboardLayout() {
                 }`
               }
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
               {label}
             </NavLink>
           ))}
@@ -132,7 +132,7 @@ export default function DashboardLayout() {
             onClick={() => navigate('/dashboard/settings')}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left hover:bg-black/[0.04] dark:hover:bg-white/5 transition-colors"
           >
-            <Settings className="w-4 h-4 text-neutral-400 dark:text-white/60 shrink-0" />
+            <Settings className="w-[18px] h-[18px] shrink-0 text-neutral-400 dark:text-white/60" strokeWidth={1.75} />
             <div className="min-w-0">
               <div className="text-sm font-medium text-neutral-900 dark:text-white truncate">{user.email}</div>
             </div>
@@ -142,7 +142,7 @@ export default function DashboardLayout() {
             onClick={handleSignOut}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-500 hover:bg-black/[0.04] hover:text-neutral-900 dark:text-white/60 dark:hover:bg-white/5 dark:hover:text-white transition-colors"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-[18px] h-[18px] shrink-0" strokeWidth={1.75} />
             Sign out
           </button>
         </div>

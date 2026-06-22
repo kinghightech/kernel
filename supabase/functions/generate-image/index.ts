@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
          url = content.trim()
       } else if (content) {
          // match markdown image: ![alt](url)
-         const match = content.match(/!\[.*?\]\((https?:\/\/[^\s\)]+)\)/)
+         const match = content.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/)
          if (match) url = match[1]
       }
     }

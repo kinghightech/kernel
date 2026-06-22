@@ -465,8 +465,8 @@ export default function Onboarding() {
               </div>
               {navButtons(
                 () => setStep(2),
-                () => { const val = addressInputRef.current?.value || address; if (val.trim()) { setAddress(val); setStep(4); } },
-                !!(address.trim() || addressInputRef.current?.value?.trim())
+                () => { if (address.trim()) setStep(4); },
+                !!address.trim()
               )}
             </div>
           )}

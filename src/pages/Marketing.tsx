@@ -9,6 +9,7 @@ import {
 } from '../campaigns';
 import { useOnboarding } from '../onboarding';
 import { fetchLocalEvents, type LocalEvent } from '../insights';
+import HelpHint from '../components/HelpHint';
 
 const PLATFORMS = ['Instagram', 'TikTok', 'X (Twitter)', 'Facebook', 'LinkedIn', 'YouTube'];
 const GOALS = ['Awareness', 'Sales', 'Engagement', 'Product launch', 'Grow followers'];
@@ -25,7 +26,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
       onClick={onClick}
       className={`px-3.5 py-2 rounded-xl text-sm font-medium transition-colors border ${
         active
-          ? 'bg-blue-600 border-blue-600 text-white'
+          ? 'bg-neutral-900 border-neutral-900 text-white dark:bg-white dark:border-white dark:text-black'
           : 'bg-black/[0.03] dark:bg-white/5 border-black/10 dark:border-white/10 text-neutral-600 dark:text-white/70 hover:border-black/30 dark:hover:border-white/30'
       }`}
     >
@@ -65,8 +66,8 @@ export default function Marketing() {
     try {
       const url = await generateImage(prompt);
       setPostImages(prev => ({ ...prev, [index]: url }));
-    } catch (e: any) {
-      setError(e.message || 'Could not generate that image. Please try again.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not generate that image. Please try again.');
     } finally {
       setImgLoading(prev => ({ ...prev, [index]: false }));
     }
@@ -79,16 +80,23 @@ export default function Marketing() {
   const [events, setEvents] = useState<LocalEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   useEffect(() => {
-    const lat = onboarding?.lat, lng = onboarding?.lng;
+    const lat = onboarding?.lat, lng = onboarding?.lng, address = onboarding?.address;
     if (lat == null || lng == null) return;
     let cancelled = false;
-    setEventsLoading(true);
-    fetchLocalEvents(lat, lng, onboarding?.address)
-      .then(ev => { if (!cancelled) setEvents(ev); })
-      .catch(e => console.error('events failed', e))
-      .finally(() => { if (!cancelled) setEventsLoading(false); });
+    // Async wrapper so the loading flag isn't set synchronously in the effect body.
+    (async () => {
+      setEventsLoading(true);
+      try {
+        const ev = await fetchLocalEvents(lat, lng, address);
+        if (!cancelled) setEvents(ev);
+      } catch (e) {
+        console.error('events failed', e);
+      } finally {
+        if (!cancelled) setEventsLoading(false);
+      }
+    })();
     return () => { cancelled = true; };
-  }, [onboarding?.lat, onboarding?.lng]);
+  }, [onboarding?.lat, onboarding?.lng, onboarding?.address]);
 
   const togglePlatform = (p: string) =>
     setPlatforms(prev => (prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]));
@@ -161,26 +169,21 @@ export default function Marketing() {
 
   return (
     <div className="relative h-full overflow-y-auto bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white">
-      <div className="absolute inset-0 pointer-events-none opacity-30 hidden dark:block" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
-
       <div className="relative z-10 max-w-3xl mx-auto px-6 py-10">
         {/* ===== HOME ===== */}
         {view === 'home' && (
           <>
-            <h1 className="text-2xl font-bold tracking-tight mb-1">Marketing</h1>
-            <p className="text-neutral-500 dark:text-white/50 text-sm mb-8">Tools to grow your business.</p>
-
             <button
               onClick={() => setView('form')}
-              className={`${card} w-full text-left p-6 flex items-center gap-5 hover:border-blue-500/50 transition-colors group`}
+              className={`${card} w-full text-left p-6 flex items-center gap-5 hover:border-black/30 dark:hover:border-white/30 transition-colors group`}
             >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shrink-0 shadow-lg shadow-blue-900/30">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-neutral-700 to-neutral-900 dark:from-neutral-600 dark:to-neutral-800 flex items-center justify-center shrink-0 shadow-lg shadow-black/20">
                 <Megaphone className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold">Social Media Campaign Generator</h2>
-                  <Sparkles className="w-4 h-4 text-blue-500" />
+                  <Sparkles className="w-4 h-4 text-neutral-700 dark:text-white/70" />
                 </div>
                 <p className="text-neutral-500 dark:text-white/50 text-sm mt-0.5">Describe your idea and let AI build a full campaign — posts, captions, hashtags, and a schedule.</p>
               </div>
@@ -220,7 +223,7 @@ export default function Marketing() {
             {/* Upcoming local events (Ticketmaster) — marketing opportunities nearby */}
             <div className="mt-12">
               <div className="flex items-center gap-2 mb-1">
-                <Ticket className="w-4 h-4 text-blue-500" />
+                <Ticket className="w-4 h-4 text-neutral-700 dark:text-white/70" />
                 <h3 className="text-sm font-semibold text-neutral-500 dark:text-white/60">Upcoming events near you</h3>
               </div>
               <p className="text-xs text-neutral-400 dark:text-white/40 mb-4">Big local events mean more foot traffic — plan a promo around them.</p>
@@ -239,7 +242,7 @@ export default function Marketing() {
                       href={ev.url ?? '#'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`${card} p-4 flex items-center gap-4 hover:border-blue-500/50 transition-colors group`}
+                      className={`${card} p-4 flex items-center gap-4 hover:border-black/30 dark:hover:border-white/30 transition-colors group`}
                     >
                       {ev.image && (
                         <img src={ev.image} alt="" className="w-16 h-16 rounded-lg object-cover border border-black/10 dark:border-white/10 shrink-0" />
@@ -251,7 +254,7 @@ export default function Marketing() {
                           {ev.venue && <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3 shrink-0" />{ev.venue}</span>}
                         </div>
                       </div>
-                      <ExternalLink className="w-4 h-4 text-neutral-400 dark:text-white/40 shrink-0 group-hover:text-blue-500 transition-colors" />
+                      <ExternalLink className="w-4 h-4 text-neutral-400 dark:text-white/40 shrink-0 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors" />
                     </a>
                   ))}
                 </div>
@@ -323,7 +326,7 @@ export default function Marketing() {
                       </button>
                     </div>
                   ))}
-                  <button onClick={() => fileRef.current?.click()} className="w-20 h-20 rounded-xl border border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center text-neutral-400 dark:text-white/40 hover:border-blue-500 hover:text-blue-500 transition-colors">
+                  <button onClick={() => fileRef.current?.click()} className="w-20 h-20 rounded-xl border border-dashed border-black/20 dark:border-white/20 flex flex-col items-center justify-center text-neutral-400 dark:text-white/40 hover:border-black/40 dark:hover:border-white/40 hover:text-neutral-900 dark:hover:text-white transition-colors">
                     <ImagePlus className="w-5 h-5" />
                   </button>
                   <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={e => onFiles(e.target.files)} />
@@ -332,7 +335,7 @@ export default function Marketing() {
 
               {error && <div className="bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-sm p-3 rounded-xl">{error}</div>}
 
-              <button onClick={handleGenerate} className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 text-white font-semibold py-4 text-base hover:bg-blue-500 transition-colors">
+              <button onClick={handleGenerate} className="w-full flex items-center justify-center gap-2 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold py-4 text-base hover:opacity-90 transition-opacity">
                 <Sparkles className="w-5 h-5" /> Generate campaign
               </button>
             </div>
@@ -344,13 +347,13 @@ export default function Marketing() {
           <>
             {generating ? (
               <div className="flex flex-col items-center justify-center text-center py-32">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+                <Loader2 className="w-8 h-8 animate-spin text-neutral-500 dark:text-white/60 mb-4" />
                 <p className="text-neutral-500 dark:text-white/60">Building your campaign…</p>
               </div>
             ) : error ? (
               <div className="py-20 text-center">
                 <p className="text-red-500 dark:text-red-400 mb-6">{error}</p>
-                <button onClick={() => setView('form')} className="rounded-xl bg-blue-600 text-white font-semibold px-6 py-3 text-sm hover:bg-blue-500 transition-colors">Back to form</button>
+                <button onClick={() => setView('form')} className="rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold px-6 py-3 text-sm hover:opacity-90 transition-opacity">Back to form</button>
               </div>
             ) : campaign ? (
               <>
@@ -370,14 +373,14 @@ export default function Marketing() {
                   {campaign.posts?.map((post, i) => (
                     <div key={i} className={`${card} p-5`}>
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-300 text-xs font-semibold">{post.platform}</span>
+                        <span className="px-2.5 py-1 rounded-full bg-black/5 dark:bg-white/10 text-neutral-700 dark:text-white/80 text-xs font-semibold">{post.platform}</span>
                         <span className="text-xs text-neutral-400 dark:text-white/40 flex items-center gap-1"><Calendar className="w-3 h-3" /> {post.day}</span>
                       </div>
                       <p className="text-sm whitespace-pre-wrap mb-3">{post.caption}</p>
                       {post.hashtags?.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mb-3">
                           {post.hashtags.map((h, j) => (
-                            <span key={j} className="text-xs text-blue-600 dark:text-blue-300 bg-blue-500/10 rounded-md px-2 py-0.5 flex items-center gap-0.5">
+                            <span key={j} className="text-xs text-neutral-700 dark:text-white/80 bg-black/5 dark:bg-white/10 rounded-md px-2 py-0.5 flex items-center gap-0.5">
                               <Hash className="w-2.5 h-2.5" />{h.replace(/^#/, '')}
                             </span>
                           ))}
@@ -391,7 +394,7 @@ export default function Marketing() {
                         <button
                           onClick={() => handleGenerateImage(i, post.imageIdea)}
                           disabled={imgLoading[i]}
-                          className="inline-flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/5 px-3 py-2 text-xs font-medium hover:border-blue-500 hover:text-blue-500 transition-colors disabled:opacity-50"
+                          className="inline-flex items-center gap-2 rounded-lg border border-black/10 dark:border-white/15 bg-black/[0.03] dark:bg-white/5 px-3 py-2 text-xs font-medium hover:border-black/40 dark:hover:border-white/40 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-50"
                         >
                           {imgLoading[i] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
                           {imgLoading[i] ? 'Generating image…' : 'Generate image'}
@@ -403,10 +406,10 @@ export default function Marketing() {
 
                 {campaign.tips?.length > 0 && (
                   <div className={`${card} p-5 mt-4`}>
-                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-blue-500" /> Tips</h3>
+                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-neutral-700 dark:text-white/70" /> Tips</h3>
                     <ul className="space-y-2">
                       {campaign.tips.map((tip, i) => (
-                        <li key={i} className="text-sm text-neutral-600 dark:text-white/70 flex gap-2"><span className="text-blue-500">•</span>{tip}</li>
+                        <li key={i} className="text-sm text-neutral-600 dark:text-white/70 flex gap-2"><span className="text-neutral-400 dark:text-white/40">•</span>{tip}</li>
                       ))}
                     </ul>
                   </div>
@@ -417,7 +420,7 @@ export default function Marketing() {
                   <button onClick={handleDislike} disabled={saving} className="flex-1 flex items-center justify-center gap-2 rounded-xl border border-black/10 dark:border-white/15 bg-white/80 dark:bg-white/5 backdrop-blur py-4 font-semibold text-sm hover:bg-black/[0.04] dark:hover:bg-white/10 transition-colors disabled:opacity-50">
                     <ThumbsDown className="w-4 h-4" /> I don't like this
                   </button>
-                  <button onClick={handleLike} disabled={saving} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-blue-600 text-white py-4 font-semibold text-sm hover:bg-blue-500 transition-colors disabled:opacity-50">
+                  <button onClick={handleLike} disabled={saving} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-neutral-900 text-white dark:bg-white dark:text-black py-4 font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ThumbsUp className="w-4 h-4" />} I like this campaign
                   </button>
                 </div>
@@ -426,6 +429,8 @@ export default function Marketing() {
           </>
         )}
       </div>
+
+      <HelpHint text="Generate complete social campaigns — posts, captions, hashtags and a posting schedule — and spot local events worth planning a promotion around." />
     </div>
   );
 }

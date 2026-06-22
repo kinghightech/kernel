@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
     const modelsToTry = requestedModel === FALLBACK_MODEL ? [requestedModel] : [requestedModel, FALLBACK_MODEL]
     let model = requestedModel
     let res!: Response
-    let data: any = null
+    let data: { error?: { code?: number | string; message?: string }; choices?: Array<{ message?: { content?: string } }> } | null = null
 
     outer:
     for (const m of modelsToTry) {

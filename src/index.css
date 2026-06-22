@@ -16,7 +16,7 @@ html, body {
 }
 
 ::selection {
-  background-color: rgb(61 129 227 / 0.3); /* bg-brand/30 */
+  background-color: rgb(115 115 115 / 0.35); /* neutral-500/35 — monochrome, reads on light & dark */
 }
 
 .liquid-glass {

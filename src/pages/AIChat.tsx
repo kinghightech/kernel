@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { supabase, supabaseUrl, supabaseAnonKey } from '../supabase';
 import { motion } from 'motion/react';
-import { Sparkles, ArrowUp } from 'lucide-react';
+import { ArrowUp, HelpCircle } from 'lucide-react';
 
 type Message = { role: 'user' | 'assistant'; content: string };
 
@@ -133,29 +133,24 @@ export default function AIChat() {
 
   return (
     <div className="relative h-full flex flex-col bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none opacity-30 hidden dark:block" style={{ background: 'radial-gradient(800px circle at 50% 0%, #0B2551, transparent 70%)' }} />
-      <div className="absolute inset-0 pointer-events-none opacity-20 hidden dark:block" style={{ background: 'radial-gradient(400px circle at 50% -20%, #A4F4FD, transparent 80%)' }} />
-
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-black/10 dark:border-white/10 backdrop-blur-md">
         <div className="flex items-center gap-2">
           <span className="font-semibold tracking-tight">Kernel AI</span>
+          <div className="group relative flex items-center">
+            <button type="button" aria-label="About Kernel AI" className="flex items-center text-neutral-400 dark:text-white/40 hover:text-neutral-700 dark:hover:text-white/80 transition-colors">
+              <HelpCircle className="w-4 h-4" />
+            </button>
+            <div role="tooltip" className="pointer-events-none absolute top-full left-0 mt-2 w-64 rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-neutral-900 px-3.5 py-2.5 text-xs leading-relaxed text-neutral-600 dark:text-white/70 shadow-xl opacity-0 translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:translate-y-0 z-20">
+              Kernel AI already has information on your business. Ask it anything to help you.
+            </div>
+          </div>
         </div>
       </header>
 
       {/* Messages */}
       <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto">
         <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
-          {messages.length === 0 && !loading && (
-            <div className="flex flex-col items-center justify-center text-center pt-24">
-              <div className="w-16 h-16 rounded-full bg-black/[0.05] border border-black/10 dark:bg-white/10 dark:border-white/20 flex items-center justify-center mb-6">
-                <Sparkles className="w-8 h-8 text-blue-600 dark:text-[#A4F4FD]" />
-              </div>
-              <h1 className="text-3xl font-bold tracking-tight mb-2">How can I help you today?</h1>
-              <p className="text-neutral-500 dark:text-white/60 max-w-sm">Ask Kernel AI anything — draft a reply, summarize a thread, or brainstorm ideas.</p>
-            </div>
-          )}
-
           {messages.map((msg, i) => (
             <motion.div
               key={i}

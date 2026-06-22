@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Phone, PhoneCall, Loader2, Check, Clock, ChevronDown, ChevronUp, User, Voicemail, Copy,
+  Phone, Loader2, Check, Clock, ChevronDown, ChevronUp, User, Voicemail, Copy,
 } from 'lucide-react';
 import {
   loadVoiceAgent, enableVoiceAgent, disableVoiceAgent,
@@ -8,6 +8,7 @@ import {
   DAY_KEYS, DAY_LABELS,
   type VoiceAgentState, type BusinessHours, type CallRecord, type DayKey,
 } from '../voice';
+import HelpHint from '../components/HelpHint';
 
 const card = 'rounded-2xl border border-black/10 bg-black/[0.02] dark:border-white/10 dark:bg-white/[0.03]';
 
@@ -54,8 +55,8 @@ export default function Voice() {
         const next = await enableVoiceAgent();
         setAgent(next);
       }
-    } catch (e: any) {
-      setError(e.message || 'Something went wrong.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong.');
     } finally {
       setBusy(false);
     }
@@ -77,8 +78,8 @@ export default function Voice() {
       await saveHours(hours);
       setHoursSaved(true);
       setTimeout(() => setHoursSaved(false), 2000);
-    } catch (e: any) {
-      setError(e.message || 'Could not save your hours.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save your hours.');
     } finally {
       setSavingHours(false);
     }
@@ -101,21 +102,12 @@ export default function Voice() {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin text-neutral-400" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 animate-spin text-neutral-500 dark:text-white/60" /></div>;
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-1 py-2 space-y-6">
-      <header>
-        <div className="flex items-center gap-2.5">
-          <PhoneCall className="w-6 h-6 text-blue-500" />
-          <h1 className="text-2xl font-bold tracking-tight">AI Receptionist</h1>
-        </div>
-        <p className="text-sm text-neutral-500 dark:text-white/50 mt-1.5">
-          When you can't pick up, an AI answers for you — it knows your hours and menu, and takes messages.
-        </p>
-      </header>
-
+    <div className="relative h-full overflow-y-auto bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white">
+      <div className="max-w-3xl mx-auto px-6 py-12 space-y-6">
       {error && (
         <div className="rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-3 text-sm">
           {error}
@@ -134,22 +126,22 @@ export default function Voice() {
           <button
             onClick={toggleAgent}
             disabled={busy}
-            className={`relative shrink-0 w-14 h-8 rounded-full transition-colors disabled:opacity-60 ${agent.enabled ? 'bg-blue-600' : 'bg-neutral-300 dark:bg-white/15'}`}
+            className={`relative shrink-0 w-14 h-8 rounded-full transition-colors disabled:opacity-60 ${agent.enabled ? 'bg-neutral-900 dark:bg-white' : 'bg-neutral-300 dark:bg-white/15'}`}
             aria-pressed={agent.enabled}
           >
-            <span className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white shadow flex items-center justify-center transition-transform ${agent.enabled ? 'translate-x-6' : ''}`}>
-              {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-500" /> : null}
+            <span className={`absolute top-1 left-1 w-6 h-6 rounded-full bg-white dark:bg-neutral-900 shadow flex items-center justify-center transition-transform ${agent.enabled ? 'translate-x-6' : ''}`}>
+              {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-500 dark:text-white/70" /> : null}
             </span>
           </button>
         </div>
 
         {agent.enabled && agent.phone_number && (
-          <div className="mt-5 rounded-xl bg-blue-500/[0.07] border border-blue-500/20 p-4">
-            <div className="text-xs uppercase tracking-wide text-blue-600/80 dark:text-blue-400/80 font-semibold">Your AI number</div>
+          <div className="mt-5 rounded-xl bg-black/[0.04] dark:bg-white/[0.05] border border-black/10 dark:border-white/10 p-4">
+            <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-white/50 font-semibold">Your AI number</div>
             <div className="flex items-center gap-3 mt-1.5">
-              <Phone className="w-5 h-5 text-blue-500" />
+              <Phone className="w-5 h-5 text-neutral-700 dark:text-white/70" />
               <span className="text-xl font-bold tracking-tight">{agent.phone_number_pretty || agent.phone_number}</span>
-              <button onClick={copyNumber} className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:opacity-80">
+              <button onClick={copyNumber} className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700 dark:text-white/70 hover:opacity-80">
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {copied ? 'Copied' : 'Copy'}
               </button>
             </div>
@@ -159,9 +151,9 @@ export default function Voice() {
               rings to your AI automatically.
             </p>
             <div className="mt-3 flex items-center gap-3 rounded-xl bg-black/[0.05] dark:bg-white/[0.07] border border-black/10 dark:border-white/10 px-4 py-3">
-              <Phone className="w-4 h-4 text-blue-500 shrink-0" />
+              <Phone className="w-4 h-4 text-neutral-700 dark:text-white/70 shrink-0" />
               <code className="text-lg font-bold tracking-wider">{forwardCode}</code>
-              <button onClick={copyCode} className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:opacity-80">
+              <button onClick={copyCode} className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700 dark:text-white/70 hover:opacity-80">
                 {codeCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />} {codeCopied ? 'Copied' : 'Copy code'}
               </button>
             </div>
@@ -189,9 +181,9 @@ export default function Voice() {
               <div key={day} className="flex items-center gap-3">
                 <button
                   onClick={() => toggleDay(day)}
-                  className={`shrink-0 w-10 h-6 rounded-full transition-colors ${open ? 'bg-blue-600' : 'bg-neutral-300 dark:bg-white/15'}`}
+                  className={`shrink-0 w-10 h-6 rounded-full transition-colors ${open ? 'bg-neutral-900 dark:bg-white' : 'bg-neutral-300 dark:bg-white/15'}`}
                 >
-                  <span className={`block w-4 h-4 rounded-full bg-white shadow ml-1 transition-transform ${open ? 'translate-x-4' : ''}`} />
+                  <span className={`block w-4 h-4 rounded-full bg-white dark:bg-neutral-900 shadow ml-1 transition-transform ${open ? 'translate-x-4' : ''}`} />
                 </button>
                 <span className="w-24 text-sm font-medium">{DAY_LABELS[day]}</span>
                 {open ? (
@@ -212,7 +204,7 @@ export default function Voice() {
         <button
           onClick={onSaveHours}
           disabled={savingHours}
-          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-black text-sm font-semibold px-4 py-2 hover:opacity-90 disabled:opacity-60"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-black text-sm font-semibold px-4 py-2 hover:opacity-90 transition-opacity disabled:opacity-60"
         >
           {savingHours ? <Loader2 className="w-4 h-4 animate-spin" /> : hoursSaved ? <Check className="w-4 h-4" /> : null}
           {hoursSaved ? 'Saved' : 'Save hours'}
@@ -236,8 +228,8 @@ export default function Voice() {
               return (
                 <div key={c.id} className="py-3">
                   <button onClick={() => setExpanded(isOpen ? null : c.id)} className="w-full flex items-start gap-3 text-left">
-                    <div className="mt-0.5 w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-blue-500" />
+                    <div className="mt-0.5 w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center shrink-0">
+                      <User className="w-4 h-4 text-neutral-700 dark:text-white/70" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -270,7 +262,7 @@ export default function Voice() {
                         <div className="space-y-1.5">
                           {c.transcript.map((t, i) => (
                             <div key={i} className="text-sm">
-                              <span className={`font-semibold ${t.role === 'agent' ? 'text-blue-500' : 'text-neutral-500 dark:text-white/50'}`}>
+                              <span className={`font-semibold ${t.role === 'agent' ? 'text-neutral-900 dark:text-white' : 'text-neutral-500 dark:text-white/50'}`}>
                                 {t.role === 'agent' ? 'AI' : 'Caller'}:
                               </span>{' '}
                               <span className="text-neutral-700 dark:text-white/70">{t.content}</span>
@@ -286,6 +278,9 @@ export default function Voice() {
           </div>
         )}
       </div>
+      </div>
+
+      <HelpHint text="Your AI receptionist answers the calls you miss — it knows your hours and menu, takes messages, and logs every call here for you to review." />
     </div>
   );
 }

@@ -30,13 +30,22 @@ export default function Home() {
   const [todos, setTodos] = useState<Todo[]>([]);
 
   useEffect(() => {
-    if (data?.lat == null || data?.lng == null) return;
+    const lat = data?.lat, lng = data?.lng;
+    if (lat == null || lng == null) return;
     let cancelled = false;
-    setWxLoading(true);
-    fetchWeather(data.lat, data.lng)
-      .then((days) => { if (!cancelled) setWeek(days.map((d) => ({ day: d, fc: forecastDay(d) }))); })
-      .catch((e) => console.error('weather failed', e))
-      .finally(() => { if (!cancelled) setWxLoading(false); });
+    // Run the fetch (and its loading flag) inside an async function so no
+    // setState is called synchronously in the effect body — avoids cascading renders.
+    (async () => {
+      setWxLoading(true);
+      try {
+        const days = await fetchWeather(lat, lng);
+        if (!cancelled) setWeek(days.map((d) => ({ day: d, fc: forecastDay(d) })));
+      } catch (e) {
+        console.error('weather failed', e);
+      } finally {
+        if (!cancelled) setWxLoading(false);
+      }
+    })();
     return () => { cancelled = true; };
   }, [data?.lat, data?.lng]);
 
@@ -55,24 +64,22 @@ export default function Home() {
 
   return (
     <div className="relative h-full overflow-y-auto bg-white text-neutral-900 dark:bg-[#0c0c0c] dark:text-white">
-      <div className="absolute inset-0 pointer-events-none opacity-30 hidden dark:block" style={{ background: 'radial-gradient(1000px circle at 50% 0%, #0B2551, transparent 70%)' }} />
-
-      <div className="relative z-10 max-w-6xl mx-auto px-8 py-14">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-black/[0.05] border border-black/10 dark:bg-white/10 dark:border-white/20 flex items-center justify-center">
-            <HomeIcon className="w-7 h-7 text-blue-600 dark:text-[#A4F4FD]" />
+      <div className="relative z-10 max-w-5xl mx-auto px-8 py-10">
+        <div className="flex items-center gap-3.5 mb-9">
+          <div className="w-12 h-12 rounded-2xl bg-black/[0.05] border border-black/10 dark:bg-white/10 dark:border-white/20 flex items-center justify-center shrink-0">
+            <HomeIcon className="w-6 h-6 text-neutral-900 dark:text-white" strokeWidth={1.75} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               {data?.businessName ? `Welcome back, ${data.businessName}` : 'Welcome back'}
             </h1>
-            <p className="text-neutral-500 dark:text-white/50 text-base">Here's how today's shaping up.</p>
+            <p className="text-neutral-500 dark:text-white/50 text-sm">Here's how today's shaping up.</p>
           </div>
         </div>
 
         {/* Today's outlook: green day / red day (no numbers) */}
         {(wxLoading || today) && (
-          <div className={`${card} p-10 mb-8`}>
+          <div className={`${card} p-8 mb-8`}>
             {wxLoading && !today ? (
               <div className="flex items-center gap-2 text-neutral-500 dark:text-white/50 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" /> Reading today's conditions…
@@ -84,19 +91,19 @@ export default function Home() {
                 <>
                   <div className="flex items-center justify-between gap-6">
                     <div>
-                      <div className="text-xs uppercase tracking-wide text-neutral-400 dark:text-white/40 font-semibold mb-2">Today's outlook</div>
-                      <div className={`text-6xl font-bold tracking-tight ${red ? 'text-red-500' : 'text-emerald-500'}`}>
+                      <div className="text-[11px] uppercase tracking-wide text-neutral-400 dark:text-white/40 font-medium mb-1.5">Today's outlook</div>
+                      <div className={`text-3xl font-semibold tracking-tight ${red ? 'text-red-500' : 'text-emerald-500'}`}>
                         {red ? 'Red Day' : 'Green Day'}
                       </div>
-                      <div className="text-lg text-neutral-500 dark:text-white/60 mt-3 max-w-lg">
+                      <div className="text-sm text-neutral-500 dark:text-white/60 mt-2 max-w-lg">
                         {red
                           ? 'Expect lighter foot traffic — a good day to run a promo.'
                           : `Conditions look good for business today. ${today.fc.condition}.`}
                       </div>
                     </div>
                     <div className="flex flex-col items-center gap-1 shrink-0">
-                      <Icon className={`w-16 h-16 ${red ? 'text-blue-400' : 'text-yellow-400'}`} />
-                      <span className="text-2xl font-semibold">{today.day.tempHigh}°</span>
+                      <Icon className={`w-12 h-12 ${red ? 'text-neutral-400 dark:text-white/50' : 'text-yellow-400'}`} strokeWidth={1.75} />
+                      <span className="text-xl font-semibold">{today.day.tempHigh}°</span>
                     </div>
                   </div>
 
@@ -169,7 +176,7 @@ export default function Home() {
           <div className={`${card} p-8`}>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-semibold">Today's to-do</h2>
-              <Link to="/dashboard/checklist" className="text-xs font-medium text-blue-600 dark:text-[#A4F4FD] hover:opacity-80 flex items-center gap-1">
+              <Link to="/dashboard/checklist" className="text-xs font-medium text-neutral-900 dark:text-white hover:opacity-80 flex items-center gap-1">
                 <ListChecks className="w-3.5 h-3.5" /> Edit
               </Link>
             </div>
