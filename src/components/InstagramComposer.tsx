@@ -1,29 +1,46 @@
 // InstagramComposer — compose & publish a single-image Instagram post.
 // Shown on the Marketing page once Instagram is connected. The actual post is
 // the "Approve & Post" action: nothing publishes until the owner clicks Post.
+//
+// Image: uploaded via the existing upload-asset function (-> public URL that
+// Instagram can fetch). Account id (ig_user_id) is resolved automatically
+// server-side, so there's nothing to paste.
 
-import { useState } from 'react';
-import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Loader2, Check, AlertCircle, ImagePlus, X } from 'lucide-react';
 import { publishInstagramPost } from '../social';
+import { uploadProductImage } from '../website';
 
 export default function InstagramComposer() {
   const [caption, setCaption] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [igUserId, setIgUserId] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [posting, setPosting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const canPost = imageUrl.trim().length > 0 && !posting;
+  const canPost = !!imageUrl && !posting && !uploading;
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setResult(null);
+    try {
+      setImageUrl(await uploadProductImage(file));
+    } catch (err) {
+      setResult({ ok: false, msg: (err as Error).message });
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
 
   const handlePost = async () => {
     setPosting(true);
     setResult(null);
     try {
-      await publishInstagramPost({
-        caption: caption.trim(),
-        imageUrl: imageUrl.trim(),
-        igUserId: igUserId.trim() || undefined,
-      });
+      await publishInstagramPost({ caption: caption.trim(), imageUrl });
       setResult({ ok: true, msg: 'Posted to Instagram 🎉' });
       setCaption('');
       setImageUrl('');
@@ -34,39 +51,43 @@ export default function InstagramComposer() {
     }
   };
 
-  const inputCls =
-    'w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-white/[0.04] px-3 py-2 text-sm outline-none focus:border-black/30 dark:focus:border-white/30';
-
   return (
     <div className="mt-5 border-t border-black/10 dark:border-white/10 pt-5">
       <p className="text-sm font-medium mb-3">Post to Instagram</p>
 
       <div className="space-y-3">
+        {/* Image: upload area or preview */}
+        {imageUrl ? (
+          <div className="relative inline-block">
+            <img src={imageUrl} alt="post" className="h-40 w-40 rounded-xl object-cover border border-black/10 dark:border-white/10" />
+            <button
+              onClick={() => setImageUrl('')}
+              className="absolute -top-2 -right-2 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-black p-1 shadow"
+              aria-label="Remove image"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="flex h-40 w-40 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-black/15 dark:border-white/20 text-neutral-500 dark:text-white/50 hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors disabled:opacity-50"
+          >
+            {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImagePlus className="w-5 h-5" />}
+            <span className="text-xs">{uploading ? 'Uploading…' : 'Add image'}</span>
+          </button>
+        )}
+        <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+
         <textarea
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
           placeholder="Caption (optional, up to 2,200 chars)"
           rows={3}
           maxLength={2200}
-          className={inputCls + ' resize-y'}
+          className="w-full rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-white/[0.04] px-3 py-2 text-sm outline-none focus:border-black/30 dark:focus:border-white/30 resize-y"
         />
-        <input
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          placeholder="Public image URL (https://…)"
-          className={inputCls}
-        />
-        <div>
-          <input
-            value={igUserId}
-            onChange={(e) => setIgUserId(e.target.value)}
-            placeholder="Instagram Business Account ID (first time only)"
-            className={inputCls}
-          />
-          <p className="text-[11px] text-neutral-500 dark:text-white/40 mt-1">
-            Required the first time, then saved. Find it in Meta Business Suite, or leave blank if already saved.
-          </p>
-        </div>
       </div>
 
       {result && (

@@ -147,12 +147,11 @@ export async function postAction(tool: string, args: Record<string, unknown>): P
 }
 
 // Publish a single-image Instagram post (handles the 2-step create+publish
-// server-side). `imageUrl` must be publicly reachable. `igUserId` is the
-// Instagram Business Account ID — pass it the first time; it's then remembered.
+// server-side). `imageUrl` must be publicly reachable. The Instagram Business
+// Account ID is resolved automatically on the server — nothing to pass.
 export async function publishInstagramPost(opts: {
   caption: string;
   imageUrl: string;
-  igUserId?: string;
 }): Promise<unknown> {
   const res = await authedFetch(POST_BASE, 'instagram-publish', {
     method: 'POST',

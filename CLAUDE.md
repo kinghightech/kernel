@@ -92,7 +92,7 @@ Direct browser → Supabase Storage uploads fail due to storage RLS. All file up
 - `products` — product catalog per user
 - `square_connections` — Square OAuth tokens + business metadata per user (RLS on, no policies: server-only)
 - `square_oauth_states` — short-lived CSRF tokens tying an OAuth callback to the user who started it (server-only)
-- `social_connections` — one row per (user, platform) for Composio social links; holds NO tokens (Composio does), so the owner may read their own rows; writes are server-only. `ig_user_id` stores the Instagram Business Account ID once captured (needed to publish)
+- `social_connections` — one row per (user, platform) for Composio social links; holds NO tokens (Composio does), so the owner may read their own rows; writes are server-only. `ig_user_id` caches the Instagram Business Account ID, auto-resolved server-side via Composio `proxyExecute` GET `/me` (no manual entry). Images are uploaded through the existing `upload-asset` function (`uploadProductImage`) to get a public URL Instagram can fetch
 
 ### Styling
 

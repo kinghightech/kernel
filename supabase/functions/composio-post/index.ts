@@ -93,11 +93,31 @@ async function handleExecute(req: Request) {
   return json({ result }, 200)
 }
 
+// Resolve & cache the Instagram Business Account id (ig_user_id) for a user by
+// asking Instagram's /me endpoint through Composio's proxy (real creds injected
+// server-side; the raw token is never exposed). Also captures the @handle.
+async function resolveIgUserId(client: ReturnType<typeof composio>, userId: string, connectedAccountId: string) {
+  const resp = await client.tools.proxyExecute({
+    toolkitSlug: 'instagram',
+    connectedAccountId,
+    endpoint: '/me?fields=user_id,username',
+    method: 'GET',
+  } as Record<string, unknown>)
+  const data = (resp?.data ?? {}) as Record<string, unknown>
+  const igUserId = data.user_id ? String(data.user_id) : ''
+  const username = data.username ? String(data.username) : null
+  if (igUserId) {
+    await admin().from('social_connections')
+      .update({ ig_user_id: igUserId, account_label: username, updated_at: new Date().toISOString() })
+      .eq('user_id', userId).eq('platform', 'instagram')
+  }
+  return igUserId
+}
+
 // --- Publish a single-image Instagram post (2-step: create container, publish)
-// body: { caption, imageUrl, igUserId? }
-//   igUserId is the Instagram Business Account ID. We store it on first use so
-//   the owner only ever enters it once. Instagram fetches imageUrl itself, so it
-//   must be a public URL.
+// body: { caption, imageUrl }
+//   ig_user_id is resolved automatically (and cached) — no manual entry.
+//   Instagram fetches imageUrl itself, so it must be a public URL.
 async function handleInstagramPublish(req: Request) {
   const user = await userFromRequest(req)
   if (!user) return json({ error: 'Not authenticated.' }, 401)
@@ -107,27 +127,31 @@ async function handleInstagramPublish(req: Request) {
   const imageUrl = String(body?.imageUrl ?? '')
   if (!imageUrl) return json({ error: 'An image URL is required.' }, 400)
 
-  // Resolve the IG Business Account id: prefer the one passed in (and remember
-  // it), otherwise fall back to the stored value.
-  let igUserId = String(body?.igUserId ?? '').trim()
+  const client = composio()
+
+  // Look up the connection + any cached account id.
   const { data: row } = await admin()
     .from('social_connections')
-    .select('ig_user_id')
+    .select('ig_user_id, connected_account_id')
     .eq('user_id', user.id).eq('platform', 'instagram')
     .maybeSingle()
 
-  if (igUserId) {
-    await admin().from('social_connections')
-      .update({ ig_user_id: igUserId, updated_at: new Date().toISOString() })
-      .eq('user_id', user.id).eq('platform', 'instagram')
-  } else {
-    igUserId = row?.ig_user_id ?? ''
-  }
-  if (!igUserId) {
-    return json({ error: 'Missing Instagram Business Account ID (ig_user_id).' }, 400)
+  if (!row?.connected_account_id) {
+    return json({ error: 'Instagram is not connected.' }, 400)
   }
 
-  const client = composio()
+  // Use the cached id, else resolve it once via /me and cache it.
+  let igUserId = String(row.ig_user_id ?? '').trim()
+  if (!igUserId) {
+    try {
+      igUserId = await resolveIgUserId(client, user.id, row.connected_account_id)
+    } catch (e) {
+      console.error('ig_user_id resolve failed:', e)
+    }
+  }
+  if (!igUserId) {
+    return json({ error: 'Could not determine your Instagram Business Account. Make sure it is a Business/Creator account.' }, 400)
+  }
 
   // Composio requires an explicit toolkit version for manual execution.
   const tools = await client.tools.getRawComposioTools({ toolkits: ['instagram'] })
