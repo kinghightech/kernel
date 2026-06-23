@@ -72,8 +72,12 @@ After a successful Stripe checkout, the layout polls `useSubscription()` every 2
 | `stripe-webhook` | no | Handle Stripe events (subscription lifecycle) |
 | `square-oauth` | no | Square OAuth (`/start`, `/callback`, `/status`, `/disconnect` by path; checks JWT by hand except `/callback`) |
 | `square-data` | no (manual) | Read connected Square account: revenue, top items, catalog/customer counts; auto-refreshes the access token |
+| `composio-connect` | no (manual) | Connect social accounts (Instagram/TikTok/YouTube) via Composio (`/start`, `/status`, `/disconnect` by path). Composio holds the OAuth tokens; we store only a lightweight row |
+| `composio-post` | no (manual) | Composio actions on a connected account: `/tools` (discover slugs), `/execute` (run any approved action), `/instagram-publish` (2-step single-image IG post). The Composio userId is the Supabase user.id |
 
 Square env: `SQUARE_ENV` (`sandbox`\|`production`), `SQUARE_APP_ID`, `SQUARE_APP_SECRET` are Supabase secrets. Switching to production = change those three; no code changes. The OAuth redirect URL registered in the Square dashboard must be `<SUPABASE_URL>/functions/v1/square-oauth/callback`.
+
+Composio env: `COMPOSIO_API_KEY` is a Supabase secret used by `composio-connect` and `composio-post`. Use a **separate** key from any personal Claude Code MCP key so end-user connections don't mix with personal testing. The Composio SDK is imported in the functions via `npm:@composio/core` (Deno) — it is NOT a frontend dependency. Composio hosts the OAuth callback, so there is no `/callback` handler to maintain. Frontend client: `src/social.ts`; UI: `src/components/SocialConnections.tsx` (rendered on `/dashboard/marketing`).
 
 ### Storage uploads
 
@@ -88,6 +92,7 @@ Direct browser → Supabase Storage uploads fail due to storage RLS. All file up
 - `products` — product catalog per user
 - `square_connections` — Square OAuth tokens + business metadata per user (RLS on, no policies: server-only)
 - `square_oauth_states` — short-lived CSRF tokens tying an OAuth callback to the user who started it (server-only)
+- `social_connections` — one row per (user, platform) for Composio social links; holds NO tokens (Composio does), so the owner may read their own rows; writes are server-only. `ig_user_id` stores the Instagram Business Account ID once captured (needed to publish)
 
 ### Styling
 

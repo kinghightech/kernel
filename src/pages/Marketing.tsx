@@ -10,6 +10,7 @@ import {
 import { useOnboarding } from '../onboarding';
 import { fetchLocalEvents, type LocalEvent } from '../insights';
 import HelpHint from '../components/HelpHint';
+import SocialConnections from '../components/SocialConnections';
 
 const PLATFORMS = ['Instagram', 'TikTok', 'X (Twitter)', 'Facebook', 'LinkedIn', 'YouTube'];
 const GOALS = ['Awareness', 'Sales', 'Engagement', 'Product launch', 'Grow followers'];
@@ -188,6 +189,10 @@ export default function Marketing() {
                 <p className="text-neutral-500 dark:text-white/50 text-sm mt-0.5">Describe your idea and let AI build a full campaign — posts, captions, hashtags, and a schedule.</p>
               </div>
             </button>
+
+            <div className="mt-8">
+              <SocialConnections />
+            </div>
 
             {saved.length > 0 && (
               <div className="mt-12">
